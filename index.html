@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>社費系統 · 幹部端</title>
+<style>
+:root{
+  --bg:#07070a; --panel:#0f0f14; --panel2:#16161d; --line:#26262f;
+  --gold:#e8b44c; --golddim:#7d5f22; --txt:#e6e6ec; --dim:#797986;
+  --ok:#4ce8a0; --bad:#e8615c; --blue:#5cc8e8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--txt);
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,'PingFang TC','Noto Sans TC',monospace;
+  font-size:14px; line-height:1.65; padding-bottom:60px;
+  min-height:100vh;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:9999; pointer-events:none;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);
+}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+.hdr{
+  border-bottom:1px solid var(--line); padding:16px 0 12px; margin-bottom:16px;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:10px;
+}
+.brand{font-size:17px;letter-spacing:.14em;color:var(--gold);text-shadow:0 0 14px rgba(232,180,76,.4)}
+.brand small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);text-shadow:none;margin-top:3px}
+.who{font-size:11px;color:var(--dim);text-align:right;line-height:1.5}
+.who b{color:var(--gold);display:block;font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:10px;letter-spacing:.2em;color:var(--dim);margin:12px 0 5px}
+label:first-child{margin-top:0}
+input,select,textarea{
+  width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--txt);
+  border-radius:7px; padding:11px 12px; font:inherit; font-size:15px; outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--golddim);box-shadow:0 0 0 2px rgba(232,180,76,.1)}
+textarea{resize:vertical;min-height:70px}
+button{
+  width:100%; background:var(--gold); color:#0a0a0d; border:0; border-radius:8px;
+  padding:13px; font:inherit; font-size:15px; font-weight:700; letter-spacing:.08em; cursor:pointer;
+}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--gold);border:1px solid var(--golddim)}
+button.dim{background:transparent;color:var(--dim);border:1px solid var(--line)}
+.pick{display:grid;gap:10px;margin-bottom:16px}
+.pick button{text-align:left;padding:16px;line-height:1.4}
+.pick .sub{display:block;font-size:11px;font-weight:400;opacity:.7;margin-top:3px;letter-spacing:0}
+.sec{font-size:10px;letter-spacing:.28em;color:var(--dim);margin:22px 0 10px;
+     border-bottom:1px solid var(--line);padding-bottom:7px}
+.badge{display:inline-block;font-size:10px;letter-spacing:.1em;padding:3px 8px;border-radius:20px;border:1px solid}
+.b-pending{color:var(--blue);border-color:#2a5a6a;background:rgba(92,200,232,.08)}
+.b-open{color:var(--gold);border-color:var(--golddim);background:rgba(232,180,76,.08)}
+.b-review{color:var(--gold);border-color:var(--golddim);background:rgba(232,180,76,.08)}
+.b-settled{color:var(--ok);border-color:#2a6a4e;background:rgba(76,232,160,.08)}
+.b-rejected{color:var(--bad);border-color:#6a2f2c;background:rgba(232,97,92,.08)}
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.item{font-size:15px;color:var(--txt)}
+.amt{font-size:19px;color:var(--gold);white-space:nowrap}
+.meta{font-size:11px;color:var(--dim);margin-top:4px}
+.note{font-size:12px;background:var(--panel2);border-left:2px solid var(--golddim);
+      padding:8px 10px;border-radius:0 6px 6px 0;margin-top:10px;color:#c9c9d2}
+.note.bad{border-color:var(--bad)}
+.thumb{width:100%;border-radius:8px;border:1px solid var(--line);margin-top:10px;display:block}
+.empty{text-align:center;color:var(--dim);padding:34px 12px;font-size:12px;line-height:2}
+.msg{font-size:12px;padding:10px 12px;border-radius:7px;margin-bottom:12px;display:none}
+.msg.on{display:block}
+.msg.ok{background:rgba(76,232,160,.1);color:var(--ok);border:1px solid #2a6a4e}
+.msg.err{background:rgba(232,97,92,.1);color:var(--bad);border:1px solid #6a2f2c}
+.up{border:1px dashed var(--golddim);border-radius:8px;padding:18px;text-align:center;
+    color:var(--dim);font-size:12px;cursor:pointer;background:var(--panel2)}
+.up.has{border-style:solid;color:var(--ok)}
+.up input{display:none}
+.diff{text-align:center;padding:11px;border-radius:7px;margin-top:10px;font-size:13px}
+.diff.back{background:rgba(76,232,160,.1);color:var(--ok);border:1px solid #2a6a4e}
+.diff.more{background:rgba(232,180,76,.1);color:var(--gold);border:1px solid var(--golddim)}
+.diff.even{background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
+.load{text-align:center;color:var(--golddim);padding:60px 0;letter-spacing:.3em;font-size:11px}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="load">LOADING…</div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ============ Firebase ============ */
+var firebaseConfig = {
+  apiKey: "AIzaSyBVyMyU1COw3BVVHNSjJSCQy-sgqE36oBE",
+  authDomain: "clpb-b468b.firebaseapp.com",
+  projectId: "clpb-b468b",
+  storageBucket: "clpb-b468b.firebasestorage.app",
+  messagingSenderId: "656673923296",
+  appId: "1:656673923296:web:9138b1a2cb4e7c585d3085"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+/* ============ 小工具 ============ */
+var app = document.getElementById('app');
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function money(n){ return 'NT$' + Number(n||0).toLocaleString('en-US'); }
+function dt(ms){
+  if(!ms) return '—';
+  var d = new Date(ms);
+  return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+var LS = {
+  get:function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set:function(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del:function(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+function toast(txt, bad){
+  var m = $('msg'); if(!m) return;
+  m.className = 'msg on ' + (bad ? 'err' : 'ok');
+  m.textContent = txt;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ m.className = 'msg'; }, 4000);
+}
+
+/* 收據壓縮：縮到寬 1000px、逐步降畫質壓到 400KB 以內 */
+function compress(file){
+  return new Promise(function(resolve, reject){
+    if(!file) return reject(new Error('沒有選到檔案'));
+    if(!/^image\//.test(file.type)) return reject(new Error('請選圖片檔'));
+    var fr = new FileReader();
+    fr.onerror = function(){ reject(new Error('檔案讀不到，換一張試試')); };
+    fr.onload = function(){
+      var img = new Image();
+      img.onerror = function(){ reject(new Error('圖片解析失敗，換一張試試')); };
+      img.onload = function(){
+        var w = img.width, h = img.height, MAX = 1000;
+        if(w > MAX){ h = Math.round(h * MAX / w); w = MAX; }
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img, 0, 0, w, h);
+        var q = 0.62, out = c.toDataURL('image/jpeg', q);
+        while(out.length > 400000 && q > 0.2){ q -= 0.08; out = c.toDataURL('image/jpeg', q); }
+        if(out.length > 700000) return reject(new Error('照片太大，請靠近一點重拍'));
+        resolve(out);
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ============ 狀態 ============ */
+var CFG = null, ME = null, MYREQ = [], VIEW = 'list', PHOTO = null;
+
+var ST = {
+  pending:       { t:'待審核',     c:'b-pending'  },
+  rejected:      { t:'已退回',     c:'b-rejected' },
+  settled:       { t:'已結案',     c:'b-settled'  },
+  advance_open:  { t:'待補收據',   c:'b-open'     },
+  advance_review:{ t:'待確認結清', c:'b-review'   }
+};
+
+/* ============ 開機 ============ */
+boot();
+
+function boot(){
+  db.collection('config').doc('main').get().then(function(d){
+    if(!d.exists){
+      app.innerHTML = '<div class="empty">系統尚未開通<br>請總務先進後台完成初始設定</div>';
+      return;
+    }
+    CFG = d.data();
+    var saved = LS.get('clpb_officer');
+    if(saved){
+      db.collection('officers').doc(saved).get().then(function(o){
+        if(o.exists && o.data().active !== false){
+          ME = Object.assign({ id:o.id }, o.data());
+          loadMine();
+        } else { LS.del('clpb_officer'); login(); }
+      }).catch(login);
+    } else login();
+  }).catch(function(e){
+    app.innerHTML = '<div class="empty">連不上資料庫<br>' + esc(e.message) + '</div>';
+  });
+}
+
+/* ============ 登入 ============ */
+function login(err){
+  app.innerHTML =
+    '<div class="hdr"><div class="brand">' + esc(CFG.clubName || '社費系統') +
+    '<small>OFFICER ACCESS</small></div></div>' +
+    '<div id="msg" class="msg"></div>' +
+    '<div class="card">' +
+      '<label>你是誰</label><select id="pick"><option value="">載入中…</option></select>' +
+      '<label>四位數密碼</label>' +
+      '<input id="pin" type="tel" inputmode="numeric" maxlength="4" placeholder="••••">' +
+      '<div style="height:14px"></div>' +
+      '<button id="go">登入</button>' +
+    '</div>' +
+    '<div class="empty">忘記密碼找總務重設</div>';
+
+  if(err) toast(err, true);
+
+  db.collection('officers').get().then(function(s){
+    var list = [];
+    s.forEach(function(d){ if(d.data().active !== false) list.push(Object.assign({id:d.id}, d.data())); });
+    list.sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','zh-Hant'); });
+    var sel = $('pick');
+    if(!list.length){ sel.innerHTML = '<option value="">總務還沒建立幹部名單</option>'; return; }
+    sel.innerHTML = '<option value="">— 選擇 —</option>' + list.map(function(o){
+      return '<option value="' + o.id + '">' + esc(o.name) + '　' + esc(o.role || '') + '</option>';
+    }).join('');
+  });
+
+  $('go').onclick = function(){
+    var id = $('pick').value, pin = $('pin').value.trim();
+    if(!id) return toast('先選你的名字', true);
+    if(!pin) return toast('要輸入密碼', true);
+    var btn = this; btn.disabled = true; btn.textContent = '驗證中…';
+    db.collection('officers').doc(id).get().then(function(d){
+      if(!d.exists || String(d.data().pin) !== pin){
+        btn.disabled = false; btn.textContent = '登入';
+        return toast('密碼不對', true);
+      }
+      ME = Object.assign({ id:d.id }, d.data());
+      LS.set('clpb_officer', d.id);
+      loadMine();
+    });
+  };
+  $('pin').addEventListener('keydown', function(e){ if(e.key === 'Enter') $('go').click(); });
+}
+
+/* ============ 讀我的申請 ============ */
+function loadMine(){
+  app.innerHTML = '<div class="load">LOADING…</div>';
+  db.collection('requests').where('officerId','==',ME.id).get().then(function(s){
+    MYREQ = [];
+    s.forEach(function(d){ MYREQ.push(Object.assign({id:d.id}, d.data())); });
+    MYREQ.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    render();
+  }).catch(function(e){
+    app.innerHTML = '<div class="empty">讀取失敗<br>' + esc(e.message) + '</div>';
+  });
+}
+
+/* ============ 畫面 ============ */
+function shell(inner){
+  return '<div class="hdr">' +
+      '<div class="brand">' + esc(CFG.clubName || '社費系統') + '<small>OFFICER</small></div>' +
+      '<div class="who"><b>' + esc(ME.name) + '</b>' + esc(ME.role || '幹部') +
+        ' · <a href="#" id="out" style="color:var(--dim)">登出</a></div>' +
+    '</div>' +
+    '<div id="msg" class="msg"></div>' + inner;
+}
+
+function render(){
+  if(VIEW === 'claim')   return formView('claim');
+  if(VIEW === 'advance') return formView('advance');
+  listView();
+}
+
+function bindOut(){
+  var o = $('out');
+  if(o) o.onclick = function(e){
+    e.preventDefault();
+    LS.del('clpb_officer'); ME = null; MYREQ = []; VIEW = 'list'; login();
+  };
+}
+
+/* ---- 列表 ---- */
+function listView(){
+  var todo = MYREQ.filter(function(r){ return r.status === 'advance_open'; });
+
+  var html = '<div class="pick">' +
+    '<button id="bClaim">核銷申請<span class="sub">我已經先付錢了，附收據跟總務請款</span></button>' +
+    '<button id="bAdv" class="ghost">預支申請<span class="sub">還沒買，先跟總務領錢，事後補收據</span></button>' +
+    '</div>';
+
+  if(todo.length){
+    html += '<div class="sec">待你補收據 · ' + todo.length + ' 筆</div>' +
+            todo.map(card).join('');
+  }
+
+  html += '<div class="sec">我的申請紀錄</div>';
+  var rest = MYREQ.filter(function(r){ return r.status !== 'advance_open'; });
+  html += rest.length ? rest.map(card).join('')
+        : '<div class="empty">還沒有任何申請<br>上面挑一個開始</div>';
+
+  app.innerHTML = shell(html);
+  bindOut();
+  $('bClaim').onclick = function(){ VIEW = 'claim';   PHOTO = null; render(); };
+  $('bAdv').onclick   = function(){ VIEW = 'advance'; PHOTO = null; render(); };
+  bindCards();
+}
+
+function card(r){
+  var st = ST[r.status] || ST.pending;
+  var kind = r.kind === 'advance' ? '預支' : '核銷';
+  var show = (r.status === 'settled' || r.status === 'advance_review')
+             ? (r.actualAmount != null ? r.actualAmount : r.approvedAmount)
+             : (r.approvedAmount != null ? r.approvedAmount : r.amount);
+
+  var h = '<div class="card">' +
+    '<div class="row">' +
+      '<div><div class="item">' + esc(r.item) + '</div>' +
+        '<div class="meta">' + kind + ' · ' + dt(r.createdAt) + '</div></div>' +
+      '<div style="text-align:right"><div class="amt">' + money(show) + '</div>' +
+        '<div style="margin-top:5px"><span class="badge ' + st.c + '">' + st.t + '</span></div></div>' +
+    '</div>';
+
+  if(r.reason) h += '<div class="meta" style="margin-top:8px">' + esc(r.reason) + '</div>';
+
+  if(r.status === 'rejected')
+    h += '<div class="note bad">總務退回：' + esc(r.adminNote || '未填原因') + '</div>';
+
+  if(r.approvedAmount != null && Number(r.approvedAmount) !== Number(r.amount) && r.status !== 'rejected')
+    h += '<div class="note">申請 ' + money(r.amount) + '，核准 ' + money(r.approvedAmount) +
+         (r.adminNote ? '（' + esc(r.adminNote) + '）' : '') + '</div>';
+
+  if(r.status === 'advance_open'){
+    h += '<hr><label>實際花了多少</label>' +
+      '<input type="tel" inputmode="numeric" class="fAct" data-id="' + r.id + '" placeholder="收據上的總金額">' +
+      '<div class="dOut" data-id="' + r.id + '"></div>' +
+      '<label>收據照片</label>' +
+      '<div class="up fUp" data-id="' + r.id + '">點這裡拍照或選圖<input type="file" accept="image/*"></div>' +
+      '<div style="height:12px"></div>' +
+      '<button class="fSend" data-id="' + r.id + '">送出核銷</button>';
+  }
+
+  if(r.status === 'advance_review')
+    h += '<div class="note">收據已送出，等總務確認結清</div>';
+
+  if(r.receipt)
+    h += '<img class="thumb" src="' + r.receipt + '" alt="收據">';
+
+  return h + '</div>';
+}
+
+function bindCards(){
+  var store = {};
+
+  Array.prototype.forEach.call(document.querySelectorAll('.fUp'), function(box){
+    var id = box.dataset.id, inp = box.querySelector('input');
+    box.onclick = function(){ inp.click(); };
+    inp.onchange = function(){
+      var f = inp.files[0]; if(!f) return;
+      box.textContent = '壓縮中…';
+      compress(f).then(function(d){
+        store[id] = store[id] || {}; store[id].photo = d;
+        box.innerHTML = '✓ 收據已就緒（點可重選）';
+        box.className = 'up fUp has';
+        box.appendChild(inp);
+      }).catch(function(e){
+        box.textContent = '點這裡拍照或選圖';
+        box.appendChild(inp);
+        toast(e.message, true);
+      });
+    };
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.fAct'), function(inp){
+    var id = inp.dataset.id;
+    var req = MYREQ.filter(function(r){ return r.id === id; })[0];
+    inp.oninput = function(){
+      var out = document.querySelector('.dOut[data-id="' + id + '"]');
+      var act = Number(inp.value);
+      if(!inp.value || isNaN(act) || act < 0){ out.innerHTML = ''; return; }
+      var got = Number(req.approvedAmount != null ? req.approvedAmount : req.amount);
+      var d = got - act;
+      if(d > 0)      out.innerHTML = '<div class="diff back">要退回總務 ' + money(d) + '</div>';
+      else if(d < 0) out.innerHTML = '<div class="diff more">總務要再補你 ' + money(-d) + '</div>';
+      else           out.innerHTML = '<div class="diff even">剛好用完，不用找補</div>';
+    };
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.fSend'), function(btn){
+    btn.onclick = function(){
+      var id = btn.dataset.id;
+      var act = Number((document.querySelector('.fAct[data-id="' + id + '"]') || {}).value);
+      var photo = (store[id] || {}).photo;
+      if(!act || isNaN(act) || act <= 0) return toast('要填實際金額', true);
+      if(!photo) return toast('要附收據照片', true);
+      btn.disabled = true; btn.textContent = '送出中…';
+      db.collection('requests').doc(id).update({
+        actualAmount: act,
+        receipt: photo,
+        status: 'advance_review',
+        receiptAt: Date.now()
+      }).then(function(){
+        toast('收據已送出，等總務確認');
+        loadMine();
+      }).catch(function(e){
+        btn.disabled = false; btn.textContent = '送出核銷';
+        toast('送出失敗：' + e.message, true);
+      });
+    };
+  });
+}
+
+/* ---- 表單 ---- */
+function formView(kind){
+  var isAdv = kind === 'advance';
+  var html =
+    '<div class="sec">' + (isAdv ? '預支申請 · 先領錢' : '核銷申請 · 我已墊付') + '</div>' +
+    '<div class="card">' +
+      '<label>買什麼 / 做什麼</label>' +
+      '<input id="fItem" placeholder="' + (isAdv ? '例：社課用巧克粉 ×3' : '例：手套一雙') + '">' +
+      '<label>' + (isAdv ? '預估金額' : '實付金額') + '</label>' +
+      '<input id="fAmt" type="tel" inputmode="numeric" placeholder="只填數字">' +
+      '<label>用途說明</label>' +
+      '<textarea id="fWhy" placeholder="' +
+        (isAdv ? '要買什麼、為什麼需要、大概什麼時候買' : '為什麼要買、用在哪裡') + '"></textarea>';
+
+  if(isAdv){
+    html += '<div class="note">領到錢之後記得回來這裡補收據跟實際金額，多退少補。</div>';
+  } else {
+    html += '<label>收據照片（必附）</label>' +
+      '<div class="up" id="fBox">點這裡拍照或選圖<input type="file" id="fFile" accept="image/*"></div>';
+  }
+
+  html += '<div style="height:16px"></div>' +
+      '<button id="fGo">送出申請</button>' +
+      '<div style="height:8px"></div>' +
+      '<button id="fBack" class="dim">取消</button>' +
+    '</div>';
+
+  app.innerHTML = shell(html);
+  bindOut();
+  $('fBack').onclick = function(){ VIEW = 'list'; PHOTO = null; render(); };
+
+  if(!isAdv){
+    var box = $('fBox'), file = $('fFile');
+    box.onclick = function(){ file.click(); };
+    file.onchange = function(){
+      var f = file.files[0]; if(!f) return;
+      box.textContent = '壓縮中…';
+      compress(f).then(function(d){
+        PHOTO = d;
+        box.innerHTML = '✓ 收據已就緒（點可重選）';
+        box.className = 'up has';
+        box.appendChild(file);
+      }).catch(function(e){
+        PHOTO = null;
+        box.textContent = '點這裡拍照或選圖';
+        box.className = 'up';
+        box.appendChild(file);
+        toast(e.message, true);
+      });
+    };
+  }
+
+  $('fGo').onclick = function(){
+    var item = $('fItem').value.trim();
+    var amt  = Number($('fAmt').value);
+    var why  = $('fWhy').value.trim();
+    if(!item) return toast('要填買什麼', true);
+    if(!amt || isNaN(amt) || amt <= 0) return toast('金額要填數字', true);
+    if(!why)  return toast('要寫用途，總務才知道要不要准', true);
+    if(!isAdv && !PHOTO) return toast('核銷一定要附收據', true);
+
+    var btn = this; btn.disabled = true; btn.textContent = '送出中…';
+    db.collection('requests').add({
+      officerId: ME.id, officerName: ME.name, role: ME.role || '幹部',
+      kind: kind, item: item, amount: amt, reason: why,
+      receipt: isAdv ? null : PHOTO,
+      status: 'pending',
+      approvedAmount: null, actualAmount: null, adminNote: '',
+      createdAt: Date.now()
+    }).then(function(){
+      PHOTO = null; VIEW = 'list';
+      loadMine();
+      setTimeout(function(){ toast('申請已送出，等總務審核'); }, 300);
+    }).catch(function(e){
+      btn.disabled = false; btn.textContent = '送出申請';
+      toast('送出失敗：' + e.message, true);
+    });
+  };
+}
+
+})();
+</script>
+</body>
+</html>
