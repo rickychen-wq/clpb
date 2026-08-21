@@ -5,105 +5,158 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#07070a">
 <title>社費系統 · 總務後台</title>
 <style>
 :root{
-  --bg:#07070a; --panel:#0f0f14; --panel2:#16161d; --line:#26262f;
-  --gold:#e8b44c; --golddim:#7d5f22; --txt:#e6e6ec; --dim:#797986;
-  --ok:#4ce8a0; --bad:#e8615c; --blue:#5cc8e8;
+  --bg:#07070a; --panel:#101016; --panel2:#181820; --line:#2a2a35;
+  --gold:#e8b44c; --gold2:#f5d189; --golddim:#8a6926; --txt:#ececf2; --dim:#8b8b98;
+  --ok:#4ce8a0; --bad:#f0706b; --blue:#6cd0f0;
+  --r:14px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);
- font-family:ui-monospace,'SF Mono',Menlo,Consolas,'PingFang TC','Noto Sans TC',monospace;
- font-size:14px;line-height:1.65;padding-bottom:80px;min-height:100vh}
-body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
- background:repeating-linear-gradient(180deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
-.wrap{max-width:620px;margin:0 auto;padding:0 14px}
-.hdr{border-bottom:1px solid var(--line);padding:16px 0 12px;margin-bottom:14px;
- display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
-.brand{font-size:17px;letter-spacing:.14em;color:var(--gold);text-shadow:0 0 14px rgba(232,180,76,.4)}
-.brand small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);text-shadow:none;margin-top:3px}
-.who{font-size:11px;color:var(--dim);text-align:right}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:14px;border-bottom:1px solid var(--line)}
-.tabs::-webkit-scrollbar{display:none}
-.tab{flex:0 0 auto;padding:8px 13px;border:1px solid var(--line);border-radius:20px;background:transparent;
- color:var(--dim);font:inherit;font-size:12px;letter-spacing:.08em;cursor:pointer;width:auto;font-weight:400}
-.tab.on{color:var(--gold);border-color:var(--golddim);background:rgba(232,180,76,.09)}
-.tab .n{display:inline-block;background:var(--bad);color:#fff;font-size:9px;border-radius:9px;
- padding:0 5px;margin-left:5px;vertical-align:1px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
-label{display:block;font-size:10px;letter-spacing:.2em;color:var(--dim);margin:12px 0 5px}
+body{
+  background:var(--bg); color:var(--txt);
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,'PingFang TC','Noto Sans TC',monospace;
+  font-size:16px; line-height:1.7; min-height:100vh;
+  padding-bottom:calc(86px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+body::before{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px)}
+body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 40%,transparent 55%,rgba(0,0,0,.5) 100%)}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes sweep{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+@keyframes drop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(108,208,240,.5)}70%{box-shadow:0 0 0 7px rgba(108,208,240,0)}}
+.anim{animation:rise .42s cubic-bezier(.22,.9,.28,1) both}
+
+.hdr{border-bottom:1px solid var(--line);padding:18px 0 14px;margin-bottom:16px;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand{font-size:20px;letter-spacing:.13em;color:var(--gold);text-shadow:0 0 18px rgba(232,180,76,.45)}
+.brand small{display:block;font-size:11px;letter-spacing:.32em;color:var(--dim);text-shadow:none;margin-top:4px}
+.who{font-size:13px;color:var(--dim);text-align:right}
+.who a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--line)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card.edit{border-color:var(--golddim);box-shadow:0 0 0 3px rgba(232,180,76,.08)}
+label{display:block;font-size:11px;letter-spacing:.22em;color:var(--dim);margin:16px 0 7px}
 label:first-child{margin-top:0}
 input,select,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
- border-radius:7px;padding:11px 12px;font:inherit;font-size:15px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--golddim);box-shadow:0 0 0 2px rgba(232,180,76,.1)}
-button{width:100%;background:var(--gold);color:#0a0a0d;border:0;border-radius:8px;padding:13px;
- font:inherit;font-size:15px;font-weight:700;letter-spacing:.08em;cursor:pointer}
-button:active{transform:translateY(1px)}
-button:disabled{opacity:.4;cursor:not-allowed}
-button.ghost{background:transparent;color:var(--gold);border:1px solid var(--golddim)}
-button.dim{background:transparent;color:var(--dim);border:1px solid var(--line)}
-button.danger{background:transparent;color:var(--bad);border:1px solid #6a2f2c}
-button.sm{padding:9px;font-size:13px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.sec{font-size:10px;letter-spacing:.28em;color:var(--dim);margin:22px 0 10px;
- border-bottom:1px solid var(--line);padding-bottom:7px}
+  border-radius:10px;padding:14px;font:inherit;font-size:17px;outline:none;
+  transition:border-color .18s,box-shadow .18s}
+input:focus,select:focus,textarea:focus{border-color:var(--golddim);box-shadow:0 0 0 3px rgba(232,180,76,.13)}
+textarea{resize:vertical;min-height:88px;line-height:1.6}
+button{width:100%;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#0a0a0d;
+  border:0;border-radius:11px;padding:16px;font:inherit;font-size:17px;font-weight:700;
+  letter-spacing:.06em;cursor:pointer;min-height:52px;
+  transition:transform .12s,box-shadow .2s,opacity .2s;box-shadow:0 3px 16px rgba(232,180,76,.16)}
+button:active{transform:scale(.975);box-shadow:0 1px 6px rgba(232,180,76,.3)}
+button:disabled{opacity:.35;box-shadow:none}
+button.ghost{background:transparent;color:var(--gold);border:1px solid var(--golddim);box-shadow:none}
+button.dim{background:transparent;color:var(--dim);border:1px solid var(--line);box-shadow:none}
+button.danger{background:transparent;color:var(--bad);border:1px solid #75342f;box-shadow:none}
+button.sm{padding:12px;font-size:15px;min-height:46px}
+button.xs{width:auto;padding:8px 14px;font-size:13px;min-height:auto;flex:0 0 auto}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+.sec{font-size:11px;letter-spacing:.3em;color:var(--dim);margin:26px 0 12px;
+  border-bottom:1px solid var(--line);padding-bottom:9px}
 .sec:first-child{margin-top:0}
-.big{text-align:center;padding:22px 12px;background:
- radial-gradient(circle at 50% 0%,rgba(232,180,76,.11),transparent 70%),var(--panel)}
-.big .n{font-size:38px;color:var(--gold);text-shadow:0 0 26px rgba(232,180,76,.35);line-height:1.15}
-.big .l{font-size:10px;letter-spacing:.3em;color:var(--dim);margin-bottom:6px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:11px 8px;text-align:center}
-.stat .n{font-size:20px;color:var(--txt)}
-.stat .n.g{color:var(--gold)} .stat .n.r{color:var(--bad)} .stat .n.o{color:var(--ok)}
-.stat .l{font-size:9px;letter-spacing:.15em;color:var(--dim);margin-top:3px}
-.badge{display:inline-block;font-size:10px;letter-spacing:.1em;padding:3px 8px;border-radius:20px;border:1px solid}
-.b-pending{color:var(--blue);border-color:#2a5a6a;background:rgba(92,200,232,.08)}
-.b-open,.b-review{color:var(--gold);border-color:var(--golddim);background:rgba(232,180,76,.08)}
-.b-settled{color:var(--ok);border-color:#2a6a4e;background:rgba(76,232,160,.08)}
-.b-rejected{color:var(--bad);border-color:#6a2f2c;background:rgba(232,97,92,.08)}
-.b-adv{color:var(--blue);border-color:#2a5a6a}
+
+.big{position:relative;text-align:center;padding:30px 16px;overflow:hidden;
+  background:var(--panel);border:1px solid var(--golddim)}
+.big::before{content:'';position:absolute;left:50%;top:-60%;width:150%;height:170%;
+  transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,rgba(232,180,76,.16),transparent 62%);
+  animation:glow 5s ease-in-out infinite}
+.big .l{position:relative;font-size:11px;letter-spacing:.34em;color:var(--dim);margin-bottom:10px}
+.big .n{position:relative;font-size:44px;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+  background:linear-gradient(90deg,var(--gold) 20%,#fff2d0 50%,var(--gold) 80%);background-size:200% auto;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:sweep 6s linear infinite}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center}
+.stat .n{font-size:26px;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .l{font-size:11px;letter-spacing:.12em;color:var(--dim);margin-top:4px}
+
+.badge{display:inline-block;font-size:12px;letter-spacing:.08em;padding:4px 11px;border-radius:20px;
+  border:1px solid;white-space:nowrap}
+.b-pending{color:var(--blue);border-color:#2f6478;background:rgba(108,208,240,.1);animation:pulse 2.4s infinite}
+.b-open,.b-review{color:var(--gold);border-color:var(--golddim);background:rgba(232,180,76,.1)}
+.b-settled{color:var(--ok);border-color:#2f7355;background:rgba(76,232,160,.1)}
+.b-rejected{color:var(--bad);border-color:#75342f;background:rgba(240,112,107,.1)}
 .b-mute{color:var(--dim);border-color:var(--line)}
-.row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.item{font-size:15px}
-.amt{font-size:19px;color:var(--gold);white-space:nowrap}
+
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.item{font-size:18px;line-height:1.4}
+.amt{font-size:24px;color:var(--gold);white-space:nowrap;font-variant-numeric:tabular-nums}
 .amt.out{color:var(--bad)} .amt.in{color:var(--ok)}
-.meta{font-size:11px;color:var(--dim);margin-top:4px}
-.note{font-size:12px;background:var(--panel2);border-left:2px solid var(--golddim);
- padding:8px 10px;border-radius:0 6px 6px 0;margin-top:10px;color:#c9c9d2}
-.thumb{width:100%;border-radius:8px;border:1px solid var(--line);margin-top:10px;display:block;cursor:zoom-in}
-.empty{text-align:center;color:var(--dim);padding:34px 12px;font-size:12px;line-height:2}
-.msg{font-size:12px;padding:10px 12px;border-radius:7px;margin-bottom:12px;display:none}
-.msg.on{display:block}
-.msg.ok{background:rgba(76,232,160,.1);color:var(--ok);border:1px solid #2a6a4e}
-.msg.err{background:rgba(232,97,92,.1);color:var(--bad);border:1px solid #6a2f2c}
-.up{border:1px dashed var(--golddim);border-radius:8px;padding:16px;text-align:center;
- color:var(--dim);font-size:12px;cursor:pointer;background:var(--panel2)}
-.up.has{border-style:solid;color:var(--ok)}
+.meta{font-size:13px;color:var(--dim);margin-top:6px;line-height:1.55}
+.note{font-size:14px;background:var(--panel2);border-left:3px solid var(--golddim);
+  padding:11px 13px;border-radius:0 8px 8px 0;margin-top:12px;color:#cfcfd8;line-height:1.6}
+.note.bad{border-color:var(--bad)}
+.thumb{width:100%;border-radius:10px;border:1px solid var(--line);margin-top:12px;display:block;cursor:zoom-in}
+.empty{text-align:center;color:var(--dim);padding:44px 16px;font-size:14px;line-height:2.1}
+
+.msg{font-size:14px;padding:13px 15px;border-radius:10px;margin-bottom:14px;display:none}
+.msg.on{display:block;animation:drop .3s cubic-bezier(.22,.9,.28,1) both}
+.msg.ok{background:rgba(76,232,160,.12);color:var(--ok);border:1px solid #2f7355}
+.msg.err{background:rgba(240,112,107,.12);color:var(--bad);border:1px solid #75342f}
+
+.up{border:2px dashed var(--golddim);border-radius:12px;padding:22px 16px;text-align:center;
+  color:var(--dim);font-size:14px;cursor:pointer;background:var(--panel2);
+  transition:border-color .2s,color .2s,background .2s}
+.up.has{border-style:solid;border-color:#2f7355;color:var(--ok);background:rgba(76,232,160,.07);
+  animation:pop .3s cubic-bezier(.3,1.4,.5,1) both}
 .up input{display:none}
-.diff{text-align:center;padding:11px;border-radius:7px;margin-top:10px;font-size:13px}
-.diff.back{background:rgba(76,232,160,.1);color:var(--ok);border:1px solid #2a6a4e}
-.diff.more{background:rgba(232,180,76,.1);color:var(--gold);border:1px solid var(--golddim)}
+
+.diff{text-align:center;padding:14px;border-radius:10px;margin-top:12px;font-size:16px;animation:pop .26s ease both}
+.diff.back{background:rgba(76,232,160,.12);color:var(--ok);border:1px solid #2f7355}
+.diff.more{background:rgba(232,180,76,.12);color:var(--gold);border:1px solid var(--golddim)}
 .diff.even{background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
-.orow{display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--line)}
+
+.orow{display:flex;align-items:center;gap:10px;padding:15px 16px;border-bottom:1px solid var(--line)}
 .orow:last-child{border-bottom:0}
-.orow .nm{flex:1;font-size:14px;min-width:0}
-.orow .nm span{font-size:11px;color:var(--dim)}
-.orow .uid{font-size:11px;color:var(--golddim)}
-.orow button{width:auto;padding:5px 9px;font-size:11px}
-.list{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
-.load{text-align:center;color:var(--golddim);padding:60px 0;letter-spacing:.3em;font-size:11px}
-hr{border:0;border-top:1px solid var(--line);margin:14px 0}
-.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0}
-.sw .t{font-size:13px}
-.sw .t small{display:block;font-size:11px;color:var(--dim)}
-.sw button{width:auto;padding:7px 14px;font-size:12px;flex:0 0 auto}
-.lb{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:10000;display:none;
- align-items:center;justify-content:center;padding:16px}
-.lb.on{display:flex}
-.lb img{max-width:100%;max-height:100%;border-radius:8px}
+.orow .nm{flex:1;min-width:0;font-size:16px}
+.orow .nm span{font-size:13px;color:var(--dim)}
+.orow .uid{font-size:12px;color:var(--golddim);margin-top:2px}
+.list{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0}
+.sw .t{font-size:16px}
+.sw .t small{display:block;font-size:13px;color:var(--dim);margin-top:2px}
+
+.load{text-align:center;color:var(--golddim);padding:70px 0;letter-spacing:.35em;font-size:13px;
+  animation:glow 1.4s ease-in-out infinite}
+hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:9000;display:flex;
+  background:rgba(10,10,14,.93);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.nav button{flex:1;background:transparent;border:0;box-shadow:none;color:var(--dim);
+  font-size:14px;font-weight:400;letter-spacing:.04em;padding:12px 2px;min-height:auto;border-radius:10px}
+.nav button.on{color:var(--gold);background:rgba(232,180,76,.1)}
+.nav .n{display:inline-block;background:var(--bad);color:#fff;font-size:11px;border-radius:10px;
+  padding:1px 6px;margin-left:5px;font-weight:700;vertical-align:1px}
+
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:10000;display:none;
+  align-items:center;justify-content:center;padding:16px}
+.lb.on{display:flex;animation:pop .22s ease both}
+.lb img{max-width:100%;max-height:100%;border-radius:10px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .big .n{-webkit-text-fill-color:var(--gold);background:none}
+}
 </style>
 </head>
 <body>
@@ -128,7 +181,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 
-var app = document.getElementById('app');
+var app=document.getElementById('app');
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -140,10 +193,31 @@ function today(){ var d=new Date();
 var LS={ get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
          set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
          del:function(k){try{localStorage.removeItem(k)}catch(e){}} };
+function reduced(){ try{ return matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } }
+
 function toast(t,bad){ var m=$('msg'); if(!m) return;
+  m.className='msg'; void m.offsetWidth;
   m.className='msg on '+(bad?'err':'ok'); m.textContent=t;
   clearTimeout(toast._t); toast._t=setTimeout(function(){ m.className='msg'; },4500);
   try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){} }
+
+function anim(){
+  var box=$('body'); if(!box||reduced()) return;
+  Array.prototype.forEach.call(box.children,function(el,i){
+    if(i>13) return;
+    el.classList.add('anim'); el.style.animationDelay=(i*45)+'ms';
+  });
+}
+function countUp(el,to){
+  if(!el) return;
+  if(reduced()){ el.textContent=money(to); return; }
+  var t0=null,D=850;
+  function step(t){ if(t0===null) t0=t;
+    var p=Math.min(1,(t-t0)/D), e=1-Math.pow(1-p,3);
+    el.textContent=money(Math.round(to*e));
+    if(p<1) requestAnimationFrame(step); }
+  requestAnimationFrame(step);
+}
 
 function compress(file){
   return new Promise(function(res,rej){
@@ -174,7 +248,7 @@ $('lb').onclick=function(){ this.className='lb'; };
 window.zoom=function(s){ $('lbi').src=s; $('lb').className='lb on'; };
 
 /* ============ 狀態 ============ */
-var CFG=null, OFF=[], REQ=[], TXN=[], TAB='home', PHOTO=null;
+var CFG=null, OFF=[], REQ=[], TXN=[], TAB='home', PHOTO=null, EDIT=null, EPHOTO=undefined;
 var ST={ pending:{t:'待審核',c:'b-pending'}, rejected:{t:'已退回',c:'b-rejected'},
          settled:{t:'已結案',c:'b-settled'}, advance_open:{t:'待補收據',c:'b-open'},
          advance_review:{t:'待確認結清',c:'b-review'} };
@@ -193,42 +267,41 @@ function boot(){
   });
 }
 
-/* ============ 初始設定 ============ */
 function setup(){
   app.innerHTML=
     '<div class="hdr"><div class="brand">初始設定<small>FIRST RUN</small></div></div>'+
-    '<div id="msg" class="msg"></div>'+
+    '<div id="msg" class="msg"></div><div id="body">'+
     '<div class="card">'+
       '<label>社團名稱</label><input id="s1" placeholder="例：撞球社">'+
       '<label>學期</label><input id="s2" placeholder="例：114-1">'+
       '<label>期初結轉（上一屆留下來的錢）</label>'+
       '<input id="s4" type="tel" inputmode="numeric" placeholder="沒有就填 0">'+
       '<label>管理密碼（只有你知道）</label><input id="s5" type="password" placeholder="至少 4 碼">'+
-      '<div style="height:16px"></div><button id="sgo">建立系統</button>'+
-    '</div>';
+      '<div style="height:18px"></div><button id="sgo">建立系統</button>'+
+    '</div></div>';
+  anim();
   $('sgo').onclick=function(){
     var name=$('s1').value.trim(), carry=Number($('s4').value||0), pin=$('s5').value.trim();
     if(!name) return toast('填社團名稱',true);
     if(isNaN(carry)) return toast('結轉要填數字',true);
     if(pin.length<4) return toast('密碼至少 4 碼',true);
-    var btn=this; btn.disabled=true; btn.textContent='建立中…';
+    var b=this; b.disabled=true; b.textContent='建立中…';
     db.collection('config').doc('main').set({
       clubName:name, semester:$('s2').value.trim(), carryOver:carry,
       adminPin:pin, openReg:true, createdAt:Date.now()
     }).then(function(){ LS.set('clpb_admin',pin); boot(); })
-      .catch(function(e){ btn.disabled=false; btn.textContent='建立系統'; toast(e.message,true); });
+      .catch(function(e){ b.disabled=false; b.textContent='建立系統'; toast(e.message,true); });
   };
 }
 
-/* ============ 密碼門 ============ */
 function gate(){
   app.innerHTML=
     '<div class="hdr"><div class="brand">'+esc(CFG.clubName)+'<small>TREASURER</small></div></div>'+
-    '<div id="msg" class="msg"></div>'+
-    '<div class="card"><label>管理密碼</label>'+
-      '<input id="gp" type="password" placeholder="••••">'+
-      '<div style="height:14px"></div><button id="gg">進入後台</button></div>'+
-    '<div class="empty">要送申請請走 index.html</div>';
+    '<div id="msg" class="msg"></div><div id="body">'+
+    '<div class="card"><label>管理密碼</label><input id="gp" type="password" placeholder="••••">'+
+      '<div style="height:16px"></div><button id="gg">進入後台</button></div>'+
+    '<div class="empty">要送申請請走 index.html</div></div>';
+  anim();
   $('gg').onclick=function(){
     if($('gp').value.trim()!==String(CFG.adminPin)) return toast('密碼不對',true);
     LS.set('clpb_admin',$('gp').value.trim()); loadAll();
@@ -236,17 +309,18 @@ function gate(){
   $('gp').addEventListener('keydown',function(e){ if(e.key==='Enter') $('gg').click(); });
 }
 
-/* ============ 載入 ============ */
 function loadAll(){
   app.innerHTML='<div class="load">LOADING…</div>';
   Promise.all([
     db.collection('officers').get(),
     db.collection('requests').get(),
-    db.collection('txns').get()
+    db.collection('txns').get(),
+    db.collection('config').doc('main').get()
   ]).then(function(r){
     OFF=[]; r[0].forEach(function(d){ OFF.push(Object.assign({id:d.id},d.data())); });
     REQ=[]; r[1].forEach(function(d){ REQ.push(Object.assign({id:d.id},d.data())); });
     TXN=[]; r[2].forEach(function(d){ TXN.push(Object.assign({id:d.id},d.data())); });
+    if(r[3].exists) CFG=r[3].data();
     OFF.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
     REQ.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
     TXN.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
@@ -257,10 +331,8 @@ function loadAll(){
 }
 
 function calc(){
-  var inc=0, exp=0;
-  TXN.forEach(function(t){
-    if(t.type==='income') inc+=Number(t.amount||0); else exp+=Number(t.amount||0);
-  });
+  var inc=0,exp=0;
+  TXN.forEach(function(t){ if(t.type==='income') inc+=Number(t.amount||0); else exp+=Number(t.amount||0); });
   var carry=Number(CFG.carryOver||0);
   return { carry:carry, inc:inc, exp:exp, bal:carry+inc-exp };
 }
@@ -274,16 +346,22 @@ function render(){
     '<div class="hdr">'+
       '<div class="brand">'+esc(CFG.clubName)+'<small>TREASURER'+
         (CFG.semester?' · '+esc(CFG.semester):'')+'</small></div>'+
-      '<div class="who"><a href="#" id="out" style="color:var(--dim)">登出</a></div>'+
-    '</div>'+
-    '<div class="tabs">'+tabs.map(function(t){
-      return '<button class="tab'+(TAB===t[0]?' on':'')+'" data-t="'+t[0]+'">'+t[1]+
-             (t[2]?'<span class="n">'+t[2]+'</span>':'')+'</button>'; }).join('')+'</div>'+
-    '<div id="msg" class="msg"></div><div id="body"></div>';
+      '<div class="who"><a href="#" id="out">登出</a></div>'+
+    '</div><div id="msg" class="msg"></div><div id="body"></div>';
 
-  $('out').onclick=function(e){ e.preventDefault(); LS.del('clpb_admin'); gate(); };
-  Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){
-    b.onclick=function(){ TAB=b.dataset.t; PHOTO=null; render(); };
+  var old=document.querySelector('.nav'); if(old) old.remove();
+  var n=document.createElement('div'); n.className='nav';
+  n.innerHTML=tabs.map(function(t){
+    return '<button class="'+(TAB===t[0]?'on':'')+'" data-t="'+t[0]+'">'+t[1]+
+           (t[2]?'<span class="n">'+t[2]+'</span>':'')+'</button>'; }).join('');
+  document.body.appendChild(n);
+
+  $('out').onclick=function(e){
+    e.preventDefault(); LS.del('clpb_admin');
+    var b=document.querySelector('.nav'); if(b) b.remove(); gate();
+  };
+  Array.prototype.forEach.call(n.children,function(b){
+    b.onclick=function(){ TAB=b.dataset.t; PHOTO=null; EDIT=null; EPHOTO=undefined; render(); };
   });
 
   ({home:vHome, review:vReview, book:vBook, set:vSet})[TAB]();
@@ -296,26 +374,25 @@ function vHome(){
   var open=REQ.filter(function(r){ return r.status==='advance_open'; }).length;
   var rev =REQ.filter(function(r){ return r.status==='advance_review'; }).length;
 
-  var h='<div class="card big"><div class="l">目前結餘</div><div class="n">'+money(c.bal)+'</div></div>'+
+  var h='<div class="card big"><div class="l">目前結餘</div><div class="n" id="balN">NT$0</div></div>'+
     '<div class="stats">'+
-      '<div class="stat"><div class="n g">'+pend+'</div><div class="l">待審核</div></div>'+
-      '<div class="stat"><div class="n g">'+open+'</div><div class="l">待補收據</div></div>'+
-      '<div class="stat"><div class="n g">'+rev+'</div><div class="l">待確認結清</div></div>'+
+      '<div class="stat"><div class="n">'+pend+'</div><div class="l">待審核</div></div>'+
+      '<div class="stat"><div class="n">'+open+'</div><div class="l">待補收據</div></div>'+
+      '<div class="stat"><div class="n">'+rev+'</div><div class="l">待確認結清</div></div>'+
     '</div>'+
     '<div class="sec">帳務組成</div><div class="card">'+
       ln('期初結轉',c.carry,'')+ln('收入合計',c.inc,'in')+ln('支出合計',-c.exp,'out')+
       '<hr>'+ln('結餘',c.bal,'')+'</div>'+
     '<div class="sec">最近交易</div>';
-  var r=TXN.slice(0,6);
+  var r=TXN.slice(0,5);
   h+= r.length ? r.map(txnCard).join('') : '<div class="empty">還沒有任何帳目</div>';
-  $('body').innerHTML=h;
-  bindTxn();
+  $('body').innerHTML=h; anim(); countUp($('balN'),c.bal); bindTxn();
 }
 
 function ln(l,v,k){
-  return '<div class="row" style="padding:6px 0">'+
-    '<div class="meta" style="margin:0;font-size:12px">'+esc(l)+'</div>'+
-    '<div class="amt'+(k?' '+k:'')+'" style="font-size:15px">'+money(v)+'</div></div>';
+  return '<div class="row" style="padding:7px 0">'+
+    '<div class="meta" style="margin:0">'+esc(l)+'</div>'+
+    '<div class="amt'+(k?' '+k:'')+'" style="font-size:19px">'+money(v)+'</div></div>';
 }
 
 /* ============ 審核 ============ */
@@ -330,14 +407,15 @@ function vReview(){
   h+='<div class="sec">待審核 · '+pend.length+'</div>';
   h+= pend.length ? pend.map(reqCard).join('') : '<div class="empty">沒有待審的申請 👌</div>';
   if(open.length) h+='<div class="sec">已撥款 · 等對方補收據 · '+open.length+'</div>'+open.map(reqCard).join('');
-  h+='<div class="sec">歷史紀錄</div>';
-  h+= done.length ? done.slice(0,25).map(reqCard).join('') : '<div class="empty">還沒有結案的申請</div>';
+  h+='<div class="sec">歷史紀錄 · 可編輯</div>';
+  h+= done.length ? done.slice(0,30).map(reqCard).join('') : '<div class="empty">還沒有結案的申請</div>';
 
-  $('body').innerHTML=h;
-  bindReq();
+  $('body').innerHTML=h; anim(); bindReq();
 }
 
 function reqCard(r){
+  if(EDIT && EDIT.t==='req' && EDIT.id===r.id) return reqEdit(r);
+
   var st=ST[r.status]||ST.pending, isAdv=r.kind==='advance';
   var show=(r.status==='settled'||r.status==='advance_review')
            ?(r.actualAmount!=null?r.actualAmount:r.approvedAmount)
@@ -347,11 +425,11 @@ function reqCard(r){
       '<div><div class="item">'+esc(r.item)+'</div>'+
         '<div class="meta">'+esc(r.officerName)+' · '+esc(r.role||'')+' · '+dt(r.createdAt)+'</div></div>'+
       '<div style="text-align:right"><div class="amt">'+money(show)+'</div>'+
-        '<div style="margin-top:5px"><span class="badge '+(isAdv?'b-adv':'b-mute')+'">'+
+        '<div style="margin-top:7px"><span class="badge '+(isAdv?'b-mute':'b-mute')+'">'+
           (isAdv?'預支':'核銷')+'</span> <span class="badge '+st.c+'">'+st.t+'</span></div></div>'+
     '</div>';
 
-  if(r.reason) h+='<div class="meta" style="margin-top:8px">'+esc(r.reason)+'</div>';
+  if(r.reason) h+='<div class="meta">'+esc(r.reason)+'</div>';
   if(r.receipt) h+='<img class="thumb" src="'+r.receipt+'" onclick="zoom(this.src)" alt="收據">';
 
   if(r.status==='pending'){
@@ -359,7 +437,7 @@ function reqCard(r){
       '<input type="tel" inputmode="numeric" class="aAmt" data-id="'+r.id+'" value="'+Number(r.amount)+'">'+
       '<label>備註 / 退回原因</label>'+
       '<input class="aNote" data-id="'+r.id+'" placeholder="改金額或退回時最好填一下">'+
-      '<div style="height:12px"></div>'+
+      '<div style="height:14px"></div>'+
       '<div class="g2"><button class="aOk sm" data-id="'+r.id+'">'+
         (isAdv?'核准撥款':'核准並付款')+'</button>'+
         '<button class="aNo sm danger" data-id="'+r.id+'">退回</button></div>'+
@@ -376,9 +454,9 @@ function reqCard(r){
     if(d>0)      h+='<div class="diff back">跟他收回 '+money(d)+'</div>';
     else if(d<0) h+='<div class="diff more">再補給他 '+money(-d)+'</div>';
     else         h+='<div class="diff even">剛好，不用找補</div>';
-    h+='<div style="height:12px"></div>'+
+    h+='<div style="height:14px"></div>'+
        '<button class="aSettle sm" data-id="'+r.id+'">錢已找補完，確認結清</button>'+
-       '<div style="height:8px"></div>'+
+       '<div style="height:10px"></div>'+
        '<button class="aReopen sm dim" data-id="'+r.id+'">收據有問題，退回重傳</button>';
   }
 
@@ -387,12 +465,88 @@ function reqCard(r){
     h+='<div class="note">申請 '+money(r.amount)+' → 核准 '+money(r.approvedAmount)+
        (r.adminNote?'（'+esc(r.adminNote)+'）':'')+'</div>';
 
+  h+='<div style="height:12px"></div><button class="rEdit sm dim" data-id="'+r.id+'">編輯這筆申請</button>';
   return h+'</div>';
+}
+
+function reqEdit(r){
+  var opts=['pending','advance_open','advance_review','settled','rejected'];
+  return '<div class="card edit">'+
+    '<div class="sec" style="margin-top:0">編輯申請 · '+esc(r.officerName)+'</div>'+
+    '<label>項目</label><input id="eItem" value="'+esc(r.item)+'">'+
+    '<label>類型</label><select id="eKind">'+
+      '<option value="claim"'+(r.kind!=='advance'?' selected':'')+'>核銷</option>'+
+      '<option value="advance"'+(r.kind==='advance'?' selected':'')+'>預支</option></select>'+
+    '<div class="g3">'+
+      '<div><label>申請</label><input id="eAmt" type="tel" inputmode="numeric" value="'+Number(r.amount||0)+'"></div>'+
+      '<div><label>核准</label><input id="eApp" type="tel" inputmode="numeric" value="'+
+        (r.approvedAmount!=null?Number(r.approvedAmount):'')+'"></div>'+
+      '<div><label>實際</label><input id="eAct" type="tel" inputmode="numeric" value="'+
+        (r.actualAmount!=null?Number(r.actualAmount):'')+'"></div>'+
+    '</div>'+
+    '<label>狀態</label><select id="eSt">'+opts.map(function(o){
+      return '<option value="'+o+'"'+(r.status===o?' selected':'')+'>'+ST[o].t+'</option>'; }).join('')+'</select>'+
+    '<label>用途</label><textarea id="eWhy">'+esc(r.reason||'')+'</textarea>'+
+    '<label>總務備註</label><input id="eNote" value="'+esc(r.adminNote||'')+'">'+
+    (r.receipt?'<img class="thumb" src="'+r.receipt+'" onclick="zoom(this.src)" alt="收據">'+
+      '<div style="height:10px"></div><button class="rRmPic sm danger" data-id="'+r.id+'">移除這張收據</button>':
+      '<div class="note">這筆沒有收據</div>')+
+    '<div style="height:16px"></div>'+
+    '<div class="g2"><button class="rSave sm" data-id="'+r.id+'">儲存</button>'+
+      '<button class="rCancel sm dim">取消</button></div>'+
+    '<div style="height:10px"></div>'+
+    '<button class="rDel sm danger" data-id="'+r.id+'">刪除這筆申請</button>'+
+    '<div class="note">改狀態或金額不會自動連動帳目那筆。金額對不上的話記得去帳目頁一起改。</div>'+
+  '</div>';
 }
 
 function bindReq(){
   function val(cls,id){ var e=document.querySelector('.'+cls+'[data-id="'+id+'"]'); return e?e.value.trim():''; }
   function find(id){ return REQ.filter(function(r){ return r.id===id; })[0]; }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.rEdit'),function(b){
+    b.onclick=function(){ EDIT={t:'req',id:b.dataset.id}; render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.rCancel'),function(b){
+    b.onclick=function(){ EDIT=null; render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.rRmPic'),function(b){
+    b.onclick=function(){
+      if(!confirm('移除這張收據？')) return;
+      b.disabled=true;
+      db.collection('requests').doc(b.dataset.id).update({ receipt:null })
+        .then(function(){ toast('已移除'); loadAll(); })
+        .catch(function(e){ b.disabled=false; toast(e.message,true); });
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.rSave'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id;
+      var item=$('eItem').value.trim();
+      if(!item) return toast('項目不能空白',true);
+      var amt=Number($('eAmt').value);
+      if(!amt||isNaN(amt)||amt<=0) return toast('申請金額要是正數',true);
+      var appv=$('eApp').value.trim(), actv=$('eAct').value.trim();
+      b.disabled=true; b.textContent='儲存中…';
+      db.collection('requests').doc(id).update({
+        item:item, kind:$('eKind').value, amount:amt,
+        approvedAmount: appv===''?null:Number(appv),
+        actualAmount:   actv===''?null:Number(actv),
+        status:$('eSt').value, reason:$('eWhy').value.trim(), adminNote:$('eNote').value.trim(),
+        editedAt:Date.now()
+      }).then(function(){ EDIT=null; toast('已更新'); loadAll(); })
+        .catch(function(e){ b.disabled=false; b.textContent='儲存'; toast(e.message,true); });
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.rDel'),function(b){
+    b.onclick=function(){
+      if(!confirm('永久刪除這筆申請紀錄？帳目那筆不會跟著刪。')) return;
+      b.disabled=true;
+      db.collection('requests').doc(b.dataset.id).delete()
+        .then(function(){ EDIT=null; toast('已刪除'); loadAll(); })
+        .catch(function(e){ b.disabled=false; toast(e.message,true); });
+    };
+  });
 
   Array.prototype.forEach.call(document.querySelectorAll('.aOk'),function(b){
     b.onclick=function(){
@@ -402,21 +556,18 @@ function bindReq(){
       var isAdv=r.kind==='advance';
       b.disabled=true; b.textContent='處理中…';
       db.collection('requests').doc(id).update({
-        status: isAdv?'advance_open':'settled',
+        status:isAdv?'advance_open':'settled',
         approvedAmount:amt, adminNote:note, decidedAt:Date.now()
       }).then(function(){
         return db.collection('txns').add({
           type:'expense', title:r.item, amount:amt, date:today(),
-          category: isAdv?'預支請款':'核銷請款',
-          by: r.officerName+'（'+(r.role||'幹部')+'）',
-          note: note||'', receipt: isAdv?null:(r.receipt||null),
+          category:isAdv?'預支請款':'核銷請款',
+          by:r.officerName+'（'+(r.role||'幹部')+'）',
+          note:note||'', receipt:isAdv?null:(r.receipt||null),
           requestId:id, createdAt:Date.now()
         });
-      }).then(function(){
-        toast(isAdv?'已撥款，等他補收據':'已核准並記帳'); loadAll();
-      }).catch(function(e){
-        b.disabled=false; b.textContent='核准'; toast('失敗：'+e.message,true);
-      });
+      }).then(function(){ toast(isAdv?'已撥款，等他補收據':'已核准並記帳'); loadAll(); })
+        .catch(function(e){ b.disabled=false; b.textContent='核准'; toast('失敗：'+e.message,true); });
     };
   });
 
@@ -425,9 +576,8 @@ function bindReq(){
       var id=b.dataset.id, note=val('aNote',id);
       if(!note) return toast('退回要寫原因，不然對方看不懂',true);
       b.disabled=true;
-      db.collection('requests').doc(id).update({
-        status:'rejected', adminNote:note, decidedAt:Date.now()
-      }).then(function(){ toast('已退回'); loadAll(); })
+      db.collection('requests').doc(id).update({ status:'rejected', adminNote:note, decidedAt:Date.now() })
+        .then(function(){ toast('已退回'); loadAll(); })
         .catch(function(e){ b.disabled=false; toast(e.message,true); });
     };
   });
@@ -438,11 +588,8 @@ function bindReq(){
       b.disabled=true; b.textContent='處理中…';
       db.collection('txns').where('requestId','==',id).get().then(function(s){
         var ops=[];
-        s.forEach(function(d){
-          ops.push(db.collection('txns').doc(d.id).update({
-            amount:act, receipt:r.receipt||null, category:'預支請款（已結清）'
-          }));
-        });
+        s.forEach(function(d){ ops.push(db.collection('txns').doc(d.id).update({
+          amount:act, receipt:r.receipt||null, category:'預支請款（已結清）' })); });
         return Promise.all(ops);
       }).then(function(){
         return db.collection('requests').doc(id).update({ status:'settled', settledAt:Date.now() });
@@ -454,9 +601,8 @@ function bindReq(){
   Array.prototype.forEach.call(document.querySelectorAll('.aReopen'),function(b){
     b.onclick=function(){
       b.disabled=true;
-      db.collection('requests').doc(b.dataset.id).update({
-        status:'advance_open', receipt:null, actualAmount:null
-      }).then(function(){ toast('已退回，請他重傳收據'); loadAll(); })
+      db.collection('requests').doc(b.dataset.id).update({ status:'advance_open', receipt:null, actualAmount:null })
+        .then(function(){ toast('已退回，請他重傳收據'); loadAll(); })
         .catch(function(e){ b.disabled=false; toast(e.message,true); });
     };
   });
@@ -474,21 +620,18 @@ function vBook(){
       SRC.map(function(s){ return '<option>'+s+'</option>'; }).join('')+'</select></div>'+
     '<label>項目</label><input id="tTitle" placeholder="例：社費收齊 / 學校社團補助">'+
     '<label>金額</label><input id="tAmt" type="tel" inputmode="numeric" placeholder="只填數字">'+
-    '<label>備註</label><input id="tNote" placeholder="選填，例：34 人 ×200">'+
+    '<label>備註</label><input id="tNote" placeholder="選填">'+
     '<label>收據 / 憑證照片（選填）</label>'+
-    '<div class="up" id="tBox">點這裡拍照或選圖<input type="file" id="tFile" accept="image/*"></div>'+
-    '<div style="height:14px"></div><button id="tGo">記帳</button>'+
-    '<div class="note">只有這裡能記收入。幹部端看得到每一筆，但改不了。</div></div>';
-
-  h+='<div class="sec">全部帳目 · '+TXN.length+' 筆</div>';
+    '<div class="up" id="tBox">📷 點這裡拍照或選圖<input type="file" id="tFile" accept="image/*"></div>'+
+    '<div style="height:16px"></div><button id="tGo">記帳</button>'+
+    '<div class="note">只有這裡能記收入。幹部端看得到每一筆，但改不了。</div></div>'+
+    '<div class="sec">全部帳目 · '+TXN.length+' 筆</div>';
   h+= TXN.length ? TXN.map(txnCard).join('') : '<div class="empty">還沒有任何帳目</div>';
 
-  $('body').innerHTML=h;
+  $('body').innerHTML=h; anim();
 
   var box=$('tBox'), file=$('tFile'); PHOTO=null;
-  $('tType').onchange=function(){
-    $('srcWrap').style.display = this.value==='income' ? '' : 'none';
-  };
+  $('tType').onchange=function(){ $('srcWrap').style.display=this.value==='income'?'':'none'; };
   box.onclick=function(){ file.click(); };
   file.onchange=function(){
     var f=file.files[0]; if(!f) return;
@@ -496,7 +639,7 @@ function vBook(){
     compress(f).then(function(d){
       PHOTO=d; box.innerHTML='✓ 已就緒（點可重選）'; box.className='up has'; box.appendChild(file);
     }).catch(function(e){
-      PHOTO=null; box.textContent='點這裡拍照或選圖'; box.className='up'; box.appendChild(file);
+      PHOTO=null; box.textContent='📷 點這裡拍照或選圖'; box.className='up'; box.appendChild(file);
       toast(e.message,true);
     });
   };
@@ -505,43 +648,112 @@ function vBook(){
     var type=$('tType').value, title=$('tTitle').value.trim(), amt=Number($('tAmt').value);
     if(!title) return toast('填項目名稱',true);
     if(!amt||isNaN(amt)||amt<=0) return toast('金額要是正數',true);
-    var btn=this; btn.disabled=true; btn.textContent='記帳中…';
+    var b=this; b.disabled=true; b.textContent='記帳中…';
     db.collection('txns').add({
       type:type, title:title, amount:amt, date:$('tDate').value||today(),
       category: type==='income' ? $('tSrc').value : '總務支出',
       by:'總務記帳', note:$('tNote').value.trim(), receipt:PHOTO,
       requestId:null, createdAt:Date.now()
     }).then(function(){ PHOTO=null; toast('已記帳'); loadAll(); })
-      .catch(function(e){ btn.disabled=false; btn.textContent='記帳'; toast(e.message,true); });
+      .catch(function(e){ b.disabled=false; b.textContent='記帳'; toast(e.message,true); });
   };
 
   bindTxn();
 }
 
 function txnCard(t){
+  if(EDIT && EDIT.t==='txn' && EDIT.id===t.id) return txnEdit(t);
   var out=t.type==='expense';
   var h='<div class="card"><div class="row">'+
       '<div><div class="item">'+esc(t.title)+'</div>'+
         '<div class="meta">'+esc(t.date||'')+' · '+esc(t.category||'')+
           (t.note?' · '+esc(t.note):'')+'</div>'+
-        '<div style="margin-top:6px"><span class="badge b-mute">'+esc(t.by||'總務記帳')+'</span></div></div>'+
+        '<div style="margin-top:8px"><span class="badge b-mute">'+esc(t.by||'總務記帳')+'</span></div></div>'+
       '<div class="amt '+(out?'out':'in')+'">'+(out?'−':'+')+money(t.amount).replace('NT$','')+'</div>'+
     '</div>';
   if(t.receipt) h+='<img class="thumb" src="'+t.receipt+'" onclick="zoom(this.src)" alt="收據">';
-  h+='<div style="height:10px"></div><button class="tDel sm dim" data-id="'+t.id+'">刪除這筆</button>';
+  h+='<div style="height:12px"></div><button class="tEdit sm dim" data-id="'+t.id+'">編輯</button>';
   return h+'</div>';
 }
 
+function txnEdit(t){
+  var pic = EPHOTO===undefined ? (t.receipt||null) : EPHOTO;
+  return '<div class="card edit">'+
+    '<div class="sec" style="margin-top:0">編輯帳目</div>'+
+    '<div class="g2">'+
+      '<div><label>類型</label><select id="xType">'+
+        '<option value="income"'+(t.type==='income'?' selected':'')+'>收入</option>'+
+        '<option value="expense"'+(t.type!=='income'?' selected':'')+'>支出</option></select></div>'+
+      '<div><label>日期</label><input id="xDate" type="date" value="'+esc(t.date||today())+'"></div>'+
+    '</div>'+
+    '<label>項目</label><input id="xTitle" value="'+esc(t.title)+'">'+
+    '<label>金額</label><input id="xAmt" type="tel" inputmode="numeric" value="'+Number(t.amount||0)+'">'+
+    '<label>分類</label><input id="xCat" value="'+esc(t.category||'')+'">'+
+    '<label>經手（顯示在幹部端）</label><input id="xBy" value="'+esc(t.by||'總務記帳')+'">'+
+    '<label>備註</label><input id="xNote" value="'+esc(t.note||'')+'">'+
+    '<label>憑證照片</label>'+
+    (pic?'<img class="thumb" src="'+pic+'" onclick="zoom(this.src)" alt="收據">':'')+
+    '<div style="height:10px"></div>'+
+    '<div class="up" id="xBox">📷 '+(pic?'換一張':'加一張')+'<input type="file" id="xFile" accept="image/*"></div>'+
+    (pic?'<div style="height:10px"></div><button id="xRm" class="sm danger">移除照片</button>':'')+
+    '<div style="height:16px"></div>'+
+    '<div class="g2"><button class="xSave sm" data-id="'+t.id+'">儲存</button>'+
+      '<button class="xCancel sm dim">取消</button></div>'+
+    '<div style="height:10px"></div>'+
+    '<button class="xDel sm danger" data-id="'+t.id+'">刪除這筆帳</button>'+
+    (t.requestId?'<div class="note">這筆是請款產生的，改了不會連動申請紀錄。</div>':'')+
+  '</div>';
+}
+
 function bindTxn(){
-  Array.prototype.forEach.call(document.querySelectorAll('.tDel'),function(b){
+  Array.prototype.forEach.call(document.querySelectorAll('.tEdit'),function(b){
+    b.onclick=function(){ EDIT={t:'txn',id:b.dataset.id}; EPHOTO=undefined; render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.xCancel'),function(b){
+    b.onclick=function(){ EDIT=null; EPHOTO=undefined; render(); };
+  });
+
+  var box=$('xBox'), file=$('xFile');
+  if(box && file){
+    box.onclick=function(){ file.click(); };
+    file.onchange=function(){
+      var f=file.files[0]; if(!f) return;
+      box.textContent='壓縮中…';
+      compress(f).then(function(d){
+        EPHOTO=d; box.innerHTML='✓ 新照片已就緒（儲存後生效）'; box.className='up has'; box.appendChild(file);
+      }).catch(function(e){
+        box.textContent='📷 換一張'; box.appendChild(file); toast(e.message,true);
+      });
+    };
+  }
+  var rm=$('xRm');
+  if(rm) rm.onclick=function(){ EPHOTO=null; toast('儲存後照片就會移除'); render(); };
+
+  Array.prototype.forEach.call(document.querySelectorAll('.xSave'),function(b){
     b.onclick=function(){
       var id=b.dataset.id, t=TXN.filter(function(x){ return x.id===id; })[0];
-      if(t && t.requestId){
-        if(!confirm('這筆是請款產生的，刪掉帳目不會改申請狀態，帳目會對不上。確定？')) return;
-      } else if(!confirm('確定刪掉這筆帳？')) return;
+      var title=$('xTitle').value.trim(), amt=Number($('xAmt').value);
+      if(!title) return toast('項目不能空白',true);
+      if(!amt||isNaN(amt)||amt<=0) return toast('金額要是正數',true);
+      var pic = EPHOTO===undefined ? (t.receipt||null) : EPHOTO;
+      b.disabled=true; b.textContent='儲存中…';
+      db.collection('txns').doc(id).update({
+        type:$('xType').value, date:$('xDate').value||today(), title:title, amount:amt,
+        category:$('xCat').value.trim(), by:$('xBy').value.trim()||'總務記帳',
+        note:$('xNote').value.trim(), receipt:pic, editedAt:Date.now()
+      }).then(function(){ EDIT=null; EPHOTO=undefined; toast('已更新'); loadAll(); })
+        .catch(function(e){ b.disabled=false; b.textContent='儲存'; toast(e.message,true); });
+    };
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.xDel'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id, t=TXN.filter(function(x){ return x.id===id; })[0];
+      var w = (t&&t.requestId) ? '這筆是請款產生的，刪掉之後帳目跟申請紀錄會對不上。確定？' : '確定刪掉這筆帳？';
+      if(!confirm(w)) return;
       b.disabled=true;
       db.collection('txns').doc(id).delete()
-        .then(function(){ toast('已刪除'); loadAll(); })
+        .then(function(){ EDIT=null; toast('已刪除'); loadAll(); })
         .catch(function(e){ b.disabled=false; toast(e.message,true); });
     };
   });
@@ -554,32 +766,26 @@ function vSet(){
   var h='<div class="sec">新帳號註冊</div><div class="card">'+
     '<div class="sw"><div class="t">'+(open?'開放中':'已關閉')+
       '<small>'+(open?'任何人輸入沒用過的 ID 就能建帳號':'只有現有帳號能登入')+'</small></div>'+
-      '<button id="regSw" class="'+(open?'danger':'ghost')+'">'+(open?'關閉':'開啟')+'</button></div>'+
+      '<button id="regSw" class="xs '+(open?'danger':'ghost')+'">'+(open?'關閉':'開啟')+'</button></div>'+
     '<div class="note">幹部都綁完就關掉。網址流出去也不會有人亂建帳號。</div></div>';
 
   h+='<div class="sec">帳號 · '+OFF.length+'</div>';
-  h+= OFF.length ? '<div class="list">'+OFF.map(function(o){
-        return '<div class="orow">'+
-          '<div class="nm">'+esc(o.name)+' <span>'+esc(o.role||'')+'</span>'+
-            '<div class="uid">'+esc(o.id)+(o.pw?'':' · 待重綁')+'</div></div>'+
-          '<button class="oRst ghost" data-id="'+esc(o.id)+'">重設密碼</button>'+
-          '<button class="oDel danger" data-id="'+esc(o.id)+'">刪</button>'+
-        '</div>'; }).join('')+'</div>'
+  h+= OFF.length ? OFF.map(offCard).join('')
       : '<div class="empty">還沒有人建帳號<br>把 index.html 的網址發給幹部就會有了</div>';
 
   h+='<div class="sec">帳務設定</div><div class="card">'+
-    '<label>期初結轉</label><input id="cCarry" type="tel" inputmode="numeric" value="'+Number(CFG.carryOver||0)+'">'+
-    '<label>學期</label><input id="cSem" value="'+esc(CFG.semester||'')+'">'+
     '<label>社團名稱</label><input id="cName" value="'+esc(CFG.clubName||'')+'">'+
+    '<label>學期</label><input id="cSem" value="'+esc(CFG.semester||'')+'">'+
+    '<label>期初結轉</label><input id="cCarry" type="tel" inputmode="numeric" value="'+Number(CFG.carryOver||0)+'">'+
     '<label>管理密碼</label><input id="cPin" value="'+esc(CFG.adminPin)+'">'+
-    '<div style="height:12px"></div><button id="cGo">儲存設定</button></div>';
+    '<div style="height:16px"></div><button id="cGo">儲存設定</button></div>';
 
   h+='<div class="sec">匯出</div><div class="card">'+
     '<button id="xls" class="ghost">下載 Excel（總表 / 收支 / 請款）</button>'+
     '<div class="note">期末交接或跟學校報帳直接用這份。收據照片不會進 Excel，'+
       '要留存的話在帳目頁點圖放大自己存。</div></div>';
 
-  $('body').innerHTML=h;
+  $('body').innerHTML=h; anim();
 
   $('regSw').onclick=function(){
     var b=this; b.disabled=true;
@@ -588,69 +794,105 @@ function vSet(){
       .catch(function(e){ b.disabled=false; toast(e.message,true); });
   };
 
-  Array.prototype.forEach.call(document.querySelectorAll('.oRst'),function(b){
-    b.onclick=function(){
-      var id=b.dataset.id;
-      if(!confirm('清掉 '+id+' 的密碼？他下次登入時用新密碼重新綁定。')) return;
-      b.disabled=true;
-      db.collection('officers').doc(id).update({ pw:null })
-        .then(function(){ toast('已清除，叫他重新登入設密碼'); loadAll(); })
-        .catch(function(e){ b.disabled=false; toast(e.message,true); });
-    };
-  });
-
-  Array.prototype.forEach.call(document.querySelectorAll('.oDel'),function(b){
-    b.onclick=function(){
-      var id=b.dataset.id;
-      if(!confirm('刪掉帳號 '+id+'？他過去的申請紀錄跟帳目會留著。')) return;
-      b.disabled=true;
-      db.collection('officers').doc(id).delete()
-        .then(function(){ toast('已刪除'); loadAll(); })
-        .catch(function(e){ b.disabled=false; toast(e.message,true); });
-    };
-  });
+  bindOff();
 
   $('cGo').onclick=function(){
     var carry=Number($('cCarry').value), pin=$('cPin').value.trim(), name=$('cName').value.trim();
     if(isNaN(carry)) return toast('結轉要填數字',true);
     if(!name) return toast('社團名稱不能空白',true);
     if(pin.length<4) return toast('管理密碼至少 4 碼',true);
-    var btn=this; btn.disabled=true; btn.textContent='儲存中…';
+    var b=this; b.disabled=true; b.textContent='儲存中…';
     db.collection('config').doc('main').update({
       carryOver:carry, semester:$('cSem').value.trim(), clubName:name, adminPin:pin
     }).then(function(){ LS.set('clpb_admin',pin); toast('已儲存'); boot(); })
-      .catch(function(e){ btn.disabled=false; btn.textContent='儲存設定'; toast(e.message,true); });
+      .catch(function(e){ b.disabled=false; b.textContent='儲存設定'; toast(e.message,true); });
   };
 
   $('xls').onclick=function(){
     try{
       var wb=XLSX.utils.book_new(), c=calc();
-
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
         ['社團',CFG.clubName],['學期',CFG.semester||''],['匯出日期',today()],[],
-        ['項目','金額'],
-        ['期初結轉',c.carry],['收入合計',c.inc],['支出合計',-c.exp],['結餘',c.bal]
+        ['項目','金額'],['期初結轉',c.carry],['收入合計',c.inc],['支出合計',-c.exp],['結餘',c.bal]
       ]), '總表');
-
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(TXN.map(function(t){
         return { 日期:t.date||'', 類型:t.type==='income'?'收入':'支出', 項目:t.title,
           金額:Number(t.amount), 分類:t.category||'', 經手:t.by||'總務記帳',
-          備註:t.note||'', 有憑證:t.receipt?'有':'無' };
-      })), '收支明細');
-
+          備註:t.note||'', 有憑證:t.receipt?'有':'無' }; })), '收支明細');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(REQ.map(function(r){
         return { 送出時間:dt(r.createdAt), 帳號:r.officerId||'', 申請人:r.officerName, 職稱:r.role||'',
-          類型:r.kind==='advance'?'預支':'核銷', 項目:r.item,
-          申請金額:Number(r.amount),
+          類型:r.kind==='advance'?'預支':'核銷', 項目:r.item, 申請金額:Number(r.amount),
           核准金額:r.approvedAmount!=null?Number(r.approvedAmount):'',
           實際金額:r.actualAmount!=null?Number(r.actualAmount):'',
           狀態:(ST[r.status]||{}).t||r.status, 用途:r.reason||'', 總務備註:r.adminNote||'' };
       })), '請款紀錄');
-
       XLSX.writeFile(wb, CFG.clubName+'_社費帳_'+today()+'.xlsx');
       toast('已下載');
     }catch(e){ toast('匯出失敗：'+e.message,true); }
   };
+}
+
+function offCard(o){
+  if(EDIT && EDIT.t==='off' && EDIT.id===o.id){
+    return '<div class="card edit">'+
+      '<div class="sec" style="margin-top:0">編輯帳號 · '+esc(o.id)+'</div>'+
+      '<label>姓名</label><input id="oN" value="'+esc(o.name||'')+'">'+
+      '<label>職稱</label><input id="oR" value="'+esc(o.role||'')+'">'+
+      '<div class="note">ID 不能改（它是資料庫的鍵）。要換 ID 只能刪掉重建。</div>'+
+      '<div style="height:16px"></div>'+
+      '<div class="g2"><button class="oSave sm" data-id="'+esc(o.id)+'">儲存</button>'+
+        '<button class="oCancel sm dim">取消</button></div>'+
+      '<div style="height:10px"></div>'+
+      '<div class="g2"><button class="oRst sm ghost" data-id="'+esc(o.id)+'">重設密碼</button>'+
+        '<button class="oDel sm danger" data-id="'+esc(o.id)+'">刪除帳號</button></div>'+
+    '</div>';
+  }
+  return '<div class="card"><div class="row">'+
+      '<div><div class="item">'+esc(o.name||o.id)+' <span style="font-size:14px;color:var(--dim)">'+
+        esc(o.role||'')+'</span></div>'+
+        '<div class="meta">ID '+esc(o.id)+(o.pw?'':' · 待重綁密碼')+'</div></div>'+
+    '</div>'+
+    '<div style="height:12px"></div>'+
+    '<button class="oEdit sm dim" data-id="'+esc(o.id)+'">編輯</button></div>';
+}
+
+function bindOff(){
+  Array.prototype.forEach.call(document.querySelectorAll('.oEdit'),function(b){
+    b.onclick=function(){ EDIT={t:'off',id:b.dataset.id}; render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.oCancel'),function(b){
+    b.onclick=function(){ EDIT=null; render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.oSave'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id, n=$('oN').value.trim(), r=$('oR').value.trim();
+      if(!n) return toast('姓名不能空白',true);
+      b.disabled=true; b.textContent='儲存中…';
+      db.collection('officers').doc(id).update({ name:n, role:r })
+        .then(function(){ EDIT=null; toast('已更新'); loadAll(); })
+        .catch(function(e){ b.disabled=false; b.textContent='儲存'; toast(e.message,true); });
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.oRst'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id;
+      if(!confirm('清掉 '+id+' 的密碼？他下次登入時用新密碼重新綁定。')) return;
+      b.disabled=true;
+      db.collection('officers').doc(id).update({ pw:null })
+        .then(function(){ EDIT=null; toast('已清除，叫他重新登入設密碼'); loadAll(); })
+        .catch(function(e){ b.disabled=false; toast(e.message,true); });
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.oDel'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id;
+      if(!confirm('刪掉帳號 '+id+'？他過去的申請紀錄跟帳目會留著。')) return;
+      b.disabled=true;
+      db.collection('officers').doc(id).delete()
+        .then(function(){ EDIT=null; toast('已刪除'); loadAll(); })
+        .catch(function(e){ b.disabled=false; toast(e.message,true); });
+    };
+  });
 }
 
 })();
