@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>社費系統 · 總務後台</title>
+<style>
+:root{
+  --bg:#07070a; --panel:#0f0f14; --panel2:#16161d; --line:#26262f;
+  --gold:#e8b44c; --golddim:#7d5f22; --txt:#e6e6ec; --dim:#797986;
+  --ok:#4ce8a0; --bad:#e8615c; --blue:#5cc8e8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--txt);
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,'PingFang TC','Noto Sans TC',monospace;
+  font-size:14px; line-height:1.65; padding-bottom:80px; min-height:100vh;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:9999; pointer-events:none;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);
+}
+.wrap{max-width:620px;margin:0 auto;padding:0 14px}
+.hdr{border-bottom:1px solid var(--line);padding:16px 0 12px;margin-bottom:14px;
+     display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.brand{font-size:17px;letter-spacing:.14em;color:var(--gold);text-shadow:0 0 14px rgba(232,180,76,.4)}
+.brand small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);text-shadow:none;margin-top:3px}
+.who{font-size:11px;color:var(--dim);text-align:right}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:14px;
+      border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:8px 13px;border:1px solid var(--line);border-radius:20px;
+     background:transparent;color:var(--dim);font:inherit;font-size:12px;letter-spacing:.08em;
+     cursor:pointer;width:auto;font-weight:400;position:relative}
+.tab.on{color:var(--gold);border-color:var(--golddim);background:rgba(232,180,76,.09)}
+.tab .n{display:inline-block;background:var(--bad);color:#fff;font-size:9px;
+        border-radius:9px;padding:0 5px;margin-left:5px;vertical-align:1px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:10px;letter-spacing:.2em;color:var(--dim);margin:12px 0 5px}
+label:first-child{margin-top:0}
+input,select,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+  border-radius:7px;padding:11px 12px;font:inherit;font-size:15px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--golddim);box-shadow:0 0 0 2px rgba(232,180,76,.1)}
+textarea{resize:vertical;min-height:80px}
+button{width:100%;background:var(--gold);color:#0a0a0d;border:0;border-radius:8px;
+  padding:13px;font:inherit;font-size:15px;font-weight:700;letter-spacing:.08em;cursor:pointer}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--gold);border:1px solid var(--golddim)}
+button.dim{background:transparent;color:var(--dim);border:1px solid var(--line)}
+button.danger{background:transparent;color:var(--bad);border:1px solid #6a2f2c}
+button.sm{padding:9px;font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sec{font-size:10px;letter-spacing:.28em;color:var(--dim);margin:22px 0 10px;
+     border-bottom:1px solid var(--line);padding-bottom:7px}
+.sec:first-child{margin-top:0}
+.big{text-align:center;padding:22px 12px;background:
+     radial-gradient(circle at 50% 0%,rgba(232,180,76,.11),transparent 70%),var(--panel)}
+.big .n{font-size:38px;color:var(--gold);letter-spacing:-.01em;
+        text-shadow:0 0 26px rgba(232,180,76,.35);line-height:1.15}
+.big .l{font-size:10px;letter-spacing:.3em;color:var(--dim);margin-bottom:6px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:11px 8px;text-align:center}
+.stat .n{font-size:20px;color:var(--txt)}
+.stat .n.g{color:var(--gold)}
+.stat .n.r{color:var(--bad)}
+.stat .n.o{color:var(--ok)}
+.stat .l{font-size:9px;letter-spacing:.15em;color:var(--dim);margin-top:3px}
+.badge{display:inline-block;font-size:10px;letter-spacing:.1em;padding:3px 8px;border-radius:20px;border:1px solid}
+.b-pending{color:var(--blue);border-color:#2a5a6a;background:rgba(92,200,232,.08)}
+.b-open,.b-review{color:var(--gold);border-color:var(--golddim);background:rgba(232,180,76,.08)}
+.b-settled{color:var(--ok);border-color:#2a6a4e;background:rgba(76,232,160,.08)}
+.b-rejected{color:var(--bad);border-color:#6a2f2c;background:rgba(232,97,92,.08)}
+.b-adv{color:var(--blue);border-color:#2a5a6a}
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.item{font-size:15px}
+.amt{font-size:19px;color:var(--gold);white-space:nowrap}
+.amt.out{color:var(--bad)}
+.amt.in{color:var(--ok)}
+.meta{font-size:11px;color:var(--dim);margin-top:4px}
+.note{font-size:12px;background:var(--panel2);border-left:2px solid var(--golddim);
+      padding:8px 10px;border-radius:0 6px 6px 0;margin-top:10px;color:#c9c9d2}
+.thumb{width:100%;border-radius:8px;border:1px solid var(--line);margin-top:10px;display:block;cursor:zoom-in}
+.empty{text-align:center;color:var(--dim);padding:34px 12px;font-size:12px;line-height:2}
+.msg{font-size:12px;padding:10px 12px;border-radius:7px;margin-bottom:12px;display:none}
+.msg.on{display:block}
+.msg.ok{background:rgba(76,232,160,.1);color:var(--ok);border:1px solid #2a6a4e}
+.msg.err{background:rgba(232,97,92,.1);color:var(--bad);border:1px solid #6a2f2c}
+.up{border:1px dashed var(--golddim);border-radius:8px;padding:16px;text-align:center;
+    color:var(--dim);font-size:12px;cursor:pointer;background:var(--panel2)}
+.up.has{border-style:solid;color:var(--ok)}
+.up input{display:none}
+.diff{text-align:center;padding:11px;border-radius:7px;margin-top:10px;font-size:13px}
+.diff.back{background:rgba(76,232,160,.1);color:var(--ok);border:1px solid #2a6a4e}
+.diff.more{background:rgba(232,180,76,.1);color:var(--gold);border:1px solid var(--golddim)}
+.diff.even{background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
+.mrow{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+.mrow:last-child{border-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:#3a3a45}
+.dot.on{background:var(--ok);box-shadow:0 0 8px rgba(76,232,160,.6)}
+.mrow .nm{flex:1;font-size:14px}
+.mrow .cl{font-size:11px;color:var(--dim)}
+.mrow .mo{font-size:13px;color:var(--dim)}
+.mrow .mo.on{color:var(--ok)}
+.list{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.load{text-align:center;color:var(--golddim);padding:60px 0;letter-spacing:.3em;font-size:11px}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:10000;display:none;
+    align-items:center;justify-content:center;padding:16px}
+.lb.on{display:flex}
+.lb img{max-width:100%;max-height:100%;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="load">LOADING…</div></div>
+<div class="lb" id="lb"><img id="lbi" src="" alt=""></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+var firebaseConfig = {
+  apiKey: "AIzaSyBVyMyU1COw3BVVHNSjJSCQy-sgqE36oBE",
+  authDomain: "clpb-b468b.firebaseapp.com",
+  projectId: "clpb-b468b",
+  storageBucket: "clpb-b468b.firebasestorage.app",
+  messagingSenderId: "656673923296",
+  appId: "1:656673923296:web:9138b1a2cb4e7c585d3085"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+var app = document.getElementById('app');
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function money(n){ return 'NT$' + Number(n||0).toLocaleString('en-US'); }
+function dt(ms){ if(!ms) return '—'; var d=new Date(ms);
+  return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function today(){ var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+var LS={ get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
+         set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
+         del:function(k){try{localStorage.removeItem(k)}catch(e){}} };
+function toast(t,bad){ var m=$('msg'); if(!m) return;
+  m.className='msg on '+(bad?'err':'ok'); m.textContent=t;
+  clearTimeout(toast._t); toast._t=setTimeout(function(){ m.className='msg'; },4000);
+  try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){} }
+
+function compress(file){
+  return new Promise(function(res,rej){
+    if(!file) return rej(new Error('沒有選到檔案'));
+    if(!/^image\//.test(file.type)) return rej(new Error('請選圖片檔'));
+    var fr=new FileReader();
+    fr.onerror=function(){ rej(new Error('檔案讀不到')); };
+    fr.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ rej(new Error('圖片解析失敗')); };
+      img.onload=function(){
+        var w=img.width,h=img.height,MAX=1000;
+        if(w>MAX){ h=Math.round(h*MAX/w); w=MAX; }
+        var c=document.createElement('canvas'); c.width=w; c.height=h;
+        var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(img,0,0,w,h);
+        var q=0.62,out=c.toDataURL('image/jpeg',q);
+        while(out.length>400000&&q>0.2){ q-=0.08; out=c.toDataURL('image/jpeg',q); }
+        if(out.length>700000) return rej(new Error('照片太大，靠近一點重拍'));
+        res(out);
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+$('lb').onclick=function(){ this.className='lb'; };
+window.zoom=function(src){ $('lbi').src=src; $('lb').className='lb on'; };
+
+/* ============ 狀態 ============ */
+var CFG=null, OFF=[], MEM=[], REQ=[], TXN=[], TAB='home', PHOTO=null, OPEN=null;
+var ST={ pending:{t:'待審核',c:'b-pending'}, rejected:{t:'已退回',c:'b-rejected'},
+         settled:{t:'已結案',c:'b-settled'}, advance_open:{t:'待補收據',c:'b-open'},
+         advance_review:{t:'待確認結清',c:'b-review'} };
+
+boot();
+
+function boot(){
+  db.collection('config').doc('main').get().then(function(d){
+    if(!d.exists) return setup();
+    CFG=d.data();
+    if(LS.get('clpb_admin')===String(CFG.adminPin)) loadAll();
+    else gate();
+  }).catch(function(e){
+    app.innerHTML='<div class="empty">連不上資料庫<br>'+esc(e.message)+'</div>';
+  });
+}
+
+/* ============ 初始設定 ============ */
+function setup(){
+  app.innerHTML=
+    '<div class="hdr"><div class="brand">初始設定<small>FIRST RUN</small></div></div>'+
+    '<div id="msg" class="msg"></div>'+
+    '<div class="card">'+
+      '<label>社團名稱</label><input id="s1" placeholder="例：撞球社">'+
+      '<label>學期</label><input id="s2" placeholder="例：114-1">'+
+      '<label>每人社費</label><input id="s3" type="tel" inputmode="numeric" placeholder="300">'+
+      '<label>期初結轉（上一屆留下來的錢）</label>'+
+      '<input id="s4" type="tel" inputmode="numeric" placeholder="沒有就填 0">'+
+      '<label>管理密碼（只有你知道）</label><input id="s5" type="password" placeholder="至少 4 碼">'+
+      '<div style="height:16px"></div><button id="sgo">建立系統</button>'+
+    '</div>';
+  $('sgo').onclick=function(){
+    var name=$('s1').value.trim(), sem=$('s2').value.trim();
+    var fee=Number($('s3').value), carry=Number($('s4').value||0), pin=$('s5').value.trim();
+    if(!name) return toast('填社團名稱',true);
+    if(!fee||isNaN(fee)||fee<=0) return toast('社費要填數字',true);
+    if(isNaN(carry)) return toast('結轉要填數字',true);
+    if(pin.length<4) return toast('密碼至少 4 碼',true);
+    var btn=this; btn.disabled=true; btn.textContent='建立中…';
+    db.collection('config').doc('main').set({
+      clubName:name, semester:sem||'', feePerPerson:fee, carryOver:carry,
+      adminPin:pin, createdAt:Date.now()
+    }).then(function(){ LS.set('clpb_admin',pin); boot(); })
+      .catch(function(e){ btn.disabled=false; btn.textContent='建立系統'; toast(e.message,true); });
+  };
+}
+
+/* ============ 密碼門 ============ */
+function gate(){
+  app.innerHTML=
+    '<div class="hdr"><div class="brand">'+esc(CFG.clubName)+'<small>TREASURER</small></div></div>'+
+    '<div id="msg" class="msg"></div>'+
+    '<div class="card"><label>管理密碼</label>'+
+      '<input id="gp" type="password" placeholder="••••">'+
+      '<div style="height:14px"></div><button id="gg">進入後台</button></div>'+
+    '<div class="empty">幹部請走 index.html</div>';
+  $('gg').onclick=function(){
+    if($('gp').value.trim()!==String(CFG.adminPin)) return toast('密碼不對',true);
+    LS.set('clpb_admin',$('gp').value.trim()); loadAll();
+  };
+  $('gp').addEventListener('keydown',function(e){ if(e.key==='Enter') $('gg').click(); });
+}
+
+/* ============ 載入全部 ============ */
+function loadAll(){
+  app.innerHTML='<div class="load">LOADING…</div>';
+  Promise.all([
+    db.collection('officers').get(),
+    db.collection('members').get(),
+    db.collection('requests').get(),
+    db.collection('txns').get()
+  ]).then(function(r){
+    OFF=[]; r[0].forEach(function(d){ OFF.push(Object.assign({id:d.id},d.data())); });
+    MEM=[]; r[1].forEach(function(d){ MEM.push(Object.assign({id:d.id},d.data())); });
+    REQ=[]; r[2].forEach(function(d){ REQ.push(Object.assign({id:d.id},d.data())); });
+    TXN=[]; r[3].forEach(function(d){ TXN.push(Object.assign({id:d.id},d.data())); });
+    MEM.sort(function(a,b){ return String(a.cls||'').localeCompare(String(b.cls||''))
+      || String(a.name||'').localeCompare(String(b.name||''),'zh-Hant'); });
+    REQ.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+    TXN.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+    render();
+  }).catch(function(e){
+    app.innerHTML='<div class="empty">讀取失敗<br>'+esc(e.message)+'</div>';
+  });
+}
+
+/* ============ 帳務計算 ============ */
+function calc(){
+  var fee=0, paidN=0;
+  MEM.forEach(function(m){
+    if(m.paid){ paidN++; fee += Number(m.amount!=null?m.amount:CFG.feePerPerson); }
+  });
+  var inc=0, exp=0;
+  TXN.forEach(function(t){
+    if(t.type==='income') inc+=Number(t.amount||0);
+    else exp+=Number(t.amount||0);
+  });
+  var carry=Number(CFG.carryOver||0);
+  return { carry:carry, fee:fee, paidN:paidN, unpaidN:MEM.length-paidN,
+           inc:inc, exp:exp, bal:carry+fee+inc-exp };
+}
+
+/* ============ 外殼 ============ */
+function render(){
+  var pend=REQ.filter(function(r){ return r.status==='pending'; }).length;
+  var rev =REQ.filter(function(r){ return r.status==='advance_review'; }).length;
+  var todo=pend+rev;
+  var tabs=[['home','總覽',0],['review','審核',todo],['fee','社費',0],['book','帳目',0],['set','設定',0]];
+
+  app.innerHTML=
+    '<div class="hdr">'+
+      '<div class="brand">'+esc(CFG.clubName)+'<small>TREASURER'+(CFG.semester?' · '+esc(CFG.semester):'')+'</small></div>'+
+      '<div class="who"><a href="#" id="out" style="color:var(--dim)">登出</a></div>'+
+    '</div>'+
+    '<div class="tabs">'+tabs.map(function(t){
+      return '<button class="tab'+(TAB===t[0]?' on':'')+'" data-t="'+t[0]+'">'+t[1]+
+             (t[2]?'<span class="n">'+t[2]+'</span>':'')+'</button>';
+    }).join('')+'</div>'+
+    '<div id="msg" class="msg"></div>'+
+    '<div id="body"></div>';
+
+  $('out').onclick=function(e){ e.preventDefault(); LS.del('clpb_admin'); gate(); };
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){
+    b.onclick=function(){ TAB=b.dataset.t; OPEN=null; PHOTO=null; render(); };
+  });
+
+  ({home:vHome, review:vReview, fee:vFee, book:vBook, set:vSet})[TAB]();
+}
+
+/* ============ 總覽 ============ */
+function vHome(){
+  var c=calc();
+  var pend=REQ.filter(function(r){ return r.status==='pending'; }).length;
+  var open=REQ.filter(function(r){ return r.status==='advance_open'; }).length;
+  var rev =REQ.filter(function(r){ return r.status==='advance_review'; }).length;
+
+  var h='<div class="card big"><div class="l">目前結餘</div>'+
+        '<div class="n">'+money(c.bal)+'</div></div>'+
+    '<div class="stats">'+
+      '<div class="stat"><div class="n o">'+c.paidN+'</div><div class="l">已繳</div></div>'+
+      '<div class="stat"><div class="n r">'+c.unpaidN+'</div><div class="l">未繳</div></div>'+
+      '<div class="stat"><div class="n g">'+pend+'</div><div class="l">待審核</div></div>'+
+    '</div>';
+
+  if(open||rev){
+    h+='<div class="stats" style="grid-template-columns:1fr 1fr">'+
+      '<div class="stat"><div class="n g">'+open+'</div><div class="l">預支待補收據</div></div>'+
+      '<div class="stat"><div class="n g">'+rev+'</div><div class="l">待確認結清</div></div>'+
+    '</div>';
+  }
+
+  h+='<div class="sec">帳務組成</div><div class="card">'+
+    line('期初結轉', c.carry, '') +
+    line('社費收入', c.fee, 'in') +
+    line('其他收入', c.inc, 'in') +
+    line('支出合計', -c.exp, 'out') +
+    '<hr>'+ line('結餘', c.bal, '') +
+    '</div>';
+
+  h+='<div class="sec">最近交易</div>';
+  var recent=TXN.slice(0,6);
+  h+= recent.length ? recent.map(txnCard).join('') : '<div class="empty">還沒有任何帳目</div>';
+
+  $('body').innerHTML=h;
+}
+
+function line(l,v,k){
+  return '<div class="row" style="padding:6px 0">'+
+    '<div class="meta" style="margin:0;font-size:12px">'+esc(l)+'</div>'+
+    '<div class="amt'+(k?' '+k:'')+'" style="font-size:15px">'+money(v)+'</div></div>';
+}
+
+/* ============ 審核 ============ */
+function vReview(){
+  var pend=REQ.filter(function(r){ return r.status==='pending'; });
+  var rev =REQ.filter(function(r){ return r.status==='advance_review'; });
+  var open=REQ.filter(function(r){ return r.status==='advance_open'; });
+  var done=REQ.filter(function(r){ return r.status==='settled'||r.status==='rejected'; });
+
+  var h='';
+  if(rev.length)  h+='<div class="sec">待確認結清 · '+rev.length+'</div>'+rev.map(reqCard).join('');
+  h+='<div class="sec">待審核 · '+pend.length+'</div>';
+  h+= pend.length ? pend.map(reqCard).join('') : '<div class="empty">沒有待審的申請 👌</div>';
+  if(open.length) h+='<div class="sec">已撥款 · 等對方補收據 · '+open.length+'</div>'+open.map(reqCard).join('');
+  h+='<div class="sec">歷史紀錄</div>';
+  h+= done.length ? done.slice(0,25).map(reqCard).join('') : '<div class="empty">還沒有結案的申請</div>';
+
+  $('body').innerHTML=h;
+  bindReq();
+}
+
+function reqCard(r){
+  var st=ST[r.status]||ST.pending;
+  var isAdv=r.kind==='advance';
+  var show=(r.status==='settled'||r.status==='advance_review')
+           ? (r.actualAmount!=null?r.actualAmount:r.approvedAmount)
+           : (r.approvedAmount!=null?r.approvedAmount:r.amount);
+
+  var h='<div class="card">'+
+    '<div class="row">'+
+      '<div><div class="item">'+esc(r.item)+'</div>'+
+        '<div class="meta">'+esc(r.officerName)+' · '+esc(r.role||'')+' · '+dt(r.createdAt)+'</div></div>'+
+      '<div style="text-align:right"><div class="amt">'+money(show)+'</div>'+
+        '<div style="margin-top:5px"><span class="badge '+(isAdv?'b-adv':'b-settled')+'" '+
+          'style="'+(isAdv?'':'color:var(--dim);border-color:var(--line);background:transparent')+'">'+
+          (isAdv?'預支':'核銷')+'</span> '+
+          '<span class="badge '+st.c+'">'+st.t+'</span></div></div>'+
+    '</div>';
+
+  if(r.reason) h+='<div class="meta" style="margin-top:8px">'+esc(r.reason)+'</div>';
+
+  if(r.receipt) h+='<img class="thumb" src="'+r.receipt+'" onclick="zoom(this.src)" alt="收據">';
+
+  /* 待審核 → 核准 / 退回 */
+  if(r.status==='pending'){
+    h+='<hr><label>核准金額（可改）</label>'+
+      '<input type="tel" inputmode="numeric" class="aAmt" data-id="'+r.id+'" value="'+Number(r.amount)+'">'+
+      '<label>備註 / 退回原因</label>'+
+      '<input class="aNote" data-id="'+r.id+'" placeholder="改金額或退回時最好填一下">'+
+      '<div style="height:12px"></div>'+
+      '<div class="g2"><button class="aOk sm" data-id="'+r.id+'">'+
+        (isAdv?'核准撥款':'核准並付款')+'</button>'+
+        '<button class="aNo sm danger" data-id="'+r.id+'">退回</button></div>'+
+      (isAdv?'<div class="note">核准後這筆錢就記為支出，對方買完會回來補收據跟實際金額。</div>':'');
+  }
+
+  /* 預支已核准，等補收據 */
+  if(r.status==='advance_open')
+    h+='<div class="note">已撥款 '+money(r.approvedAmount)+'，等 '+esc(r.officerName)+' 補收據</div>';
+
+  /* 補了收據 → 確認結清 */
+  if(r.status==='advance_review'){
+    var got=Number(r.approvedAmount!=null?r.approvedAmount:r.amount);
+    var act=Number(r.actualAmount||0), d=got-act;
+    h+='<hr><div class="row" style="padding:4px 0">'+
+        '<div class="meta" style="margin:0">預支 '+money(got)+' → 實際 '+money(act)+'</div></div>';
+    if(d>0)      h+='<div class="diff back">跟他收回 '+money(d)+'</div>';
+    else if(d<0) h+='<div class="diff more">再補給他 '+money(-d)+'</div>';
+    else         h+='<div class="diff even">剛好，不用找補</div>';
+    h+='<div style="height:12px"></div>'+
+       '<button class="aSettle sm" data-id="'+r.id+'">錢已找補完，確認結清</button>'+
+       '<div style="height:8px"></div>'+
+       '<button class="aReopen sm dim" data-id="'+r.id+'">收據有問題，退回重傳</button>';
+  }
+
+  if(r.status==='rejected') h+='<div class="note">退回原因：'+esc(r.adminNote||'未填')+'</div>';
+
+  if(r.status==='settled' && r.approvedAmount!=null && Number(r.approvedAmount)!==Number(r.amount) && !isAdv)
+    h+='<div class="note">申請 '+money(r.amount)+' → 核准 '+money(r.approvedAmount)+
+       (r.adminNote?'（'+esc(r.adminNote)+'）':'')+'</div>';
+
+  return h+'</div>';
+}
+
+function bindReq(){
+  function val(cls,id){ var e=document.querySelector('.'+cls+'[data-id="'+id+'"]'); return e?e.value.trim():''; }
+  function find(id){ return REQ.filter(function(r){ return r.id===id; })[0]; }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.aOk'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id, r=find(id);
+      var amt=Number(val('aAmt',id)), note=val('aNote',id);
+      if(!amt||isNaN(amt)||amt<=0) return toast('核准金額要是正數',true);
+      b.disabled=true; b.textContent='處理中…';
+      var isAdv=r.kind==='advance';
+      db.collection('requests').doc(id).update({
+        status: isAdv?'advance_open':'settled',
+        approvedAmount: amt, adminNote: note, decidedAt: Date.now()
+      }).then(function(){
+        return db.collection('txns').add({
+          type:'expense', title:r.item, amount:amt, date:today(),
+          category: isAdv?'預支請款':'核銷請款',
+          note: r.officerName+'（'+(r.role||'幹部')+'）'+(note?' · '+note:''),
+          receipt: isAdv?null:(r.receipt||null),
+          requestId: id, createdAt: Date.now()
+        });
+      }).then(function(){
+        toast(isAdv?'已撥款，等他補收據':'已核准並記帳');
+        loadAll();
+      }).catch(function(e){
+        b.disabled=false; b.textContent='核准'; toast('失敗：'+e.message,true);
+      });
+    };
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.aNo'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id, note=val('aNote',id);
+      if(!note) return toast('退回要寫原因，不然對方看不懂',true);
+      b.disabled=true;
+      db.collection('requests').doc(id).update({
+        status:'rejected', adminNote:note, decidedAt:Date.now()
+      }).then(function(){ toast('已退回'); loadAll(); })
+        .catch(function(e){ b.disabled=false; toast(e.message,true); });
+    };
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.aSettle'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id, r=find(id), act=Number(r.actualAmount||0);
+      b.disabled=true; b.textContent='處理中…';
+      db.collection('txns').where('requestId','==',id).get().then(function(s){
+        var ops=[];
+        s.forEach(function(d){
+          ops.push(db.collection('txns').doc(d.id).update({
+            amount: act, receipt: r.receipt||null,
+            note: r.officerName+'（'+(r.role||'幹部')+'）· 預支結清'
+          }));
+        });
+        return Promise.all(ops);
+      }).then(function(){
+        return db.collection('requests').doc(id).update({ status:'settled', settledAt:Date.now() });
+      }).then(function(){ toast('已結清，帳上金額更新為實際支出'); loadAll(); })
+        .catch(function(e){ b.disabled=false; b.textContent='確認結清'; toast(e.message,true); });
+    };
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.aReopen'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id;
+      b.disabled=true;
+      db.collection('requests').doc(id).update({
+        status:'advance_open', receipt:null, actualAmount:null
+      }).then(function(){ toast('已退回，請他重傳收據'); loadAll(); })
+        .catch(function(e){ b.disabled=false; toast(e.message,true); });
+    };
+  });
+}
+
+/* ============ 社費 ============ */
+function vFee(){
+  var c=calc();
+  var h='<div class="stats">'+
+      '<div class="stat"><div class="n o">'+c.paidN+'</div><div class="l">已繳</div></div>'+
+      '<div class="stat"><div class="n r">'+c.unpaidN+'</div><div class="l">未繳</div></div>'+
+      '<div class="stat"><div class="n g">'+money(c.fee).replace('NT$','')+'</div><div class="l">已收金額</div></div>'+
+    '</div>';
+
+  if(!MEM.length){
+    h+='<div class="empty">還沒有社員名單<br>用下面的批次匯入貼上就好</div>';
+  } else {
+    h+='<div class="sec">社員名單 · 點一下切換已繳</div><div class="list">'+
+       MEM.map(memRow).join('')+'</div>'+
+       '<button id="copyUnpaid" class="ghost sm">複製未繳名單（貼到 LINE 催繳）</button>'+
+       '<div style="height:12px"></div>';
+  }
+
+  h+='<div class="sec">批次匯入社員</div><div class="card">'+
+    '<label>一行一個人，格式：姓名 或 班級,姓名</label>'+
+    '<textarea id="bulk" placeholder="陳睿騏&#10;二忠,王小明&#10;二孝,李小美"></textarea>'+
+    '<div style="height:12px"></div><button id="bulkGo" class="ghost">加入名單</button></div>';
+
+  $('body').innerHTML=h;
+
+  Array.prototype.forEach.call(document.querySelectorAll('.mrow'),function(row){
+    row.onclick=function(){ OPEN = (OPEN===row.dataset.id) ? null : row.dataset.id; vFee(); };
+  });
+
+  bindMemEdit();
+
+  var cu=$('copyUnpaid');
+  if(cu) cu.onclick=function(){
+    var names=MEM.filter(function(m){ return !m.paid; })
+                 .map(function(m){ return (m.cls?m.cls+' ':'')+m.name; });
+    if(!names.length) return toast('全部繳完了 🎉');
+    var txt='【'+CFG.clubName+'社費未繳名單】每人 '+money(CFG.feePerPerson)+'\n'+names.join('\n');
+    copy(txt);
+  };
+
+  $('bulkGo').onclick=function(){
+    var lines=$('bulk').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+    if(!lines.length) return toast('貼上名單先',true);
+    var btn=this; btn.disabled=true; btn.textContent='加入中…';
+    var batch=db.batch(), n=0;
+    lines.forEach(function(L){
+      var p=L.split(/[,，\t]+|\s{2,}/).map(function(s){ return s.trim(); }).filter(Boolean);
+      var cls='', name='';
+      if(p.length>=2){ cls=p[0]; name=p[1]; } else { name=p[0]; }
+      if(!name) return;
+      if(MEM.some(function(m){ return m.name===name && (m.cls||'')===cls; })) return;
+      batch.set(db.collection('members').doc(), {
+        name:name, cls:cls, paid:false, amount:null, paidAt:null, method:'', note:'', createdAt:Date.now()
+      });
+      n++;
+    });
+    if(!n){ btn.disabled=false; btn.textContent='加入名單'; return toast('沒有新的人可以加（重複的略過了）',true); }
+    batch.commit().then(function(){ toast('加了 '+n+' 個人'); loadAll(); })
+      .catch(function(e){ btn.disabled=false; btn.textContent='加入名單'; toast(e.message,true); });
+  };
+}
+
+function memRow(m){
+  var amt=Number(m.amount!=null?m.amount:CFG.feePerPerson);
+  var h='<div class="mrow" data-id="'+m.id+'">'+
+      '<div class="dot'+(m.paid?' on':'')+'"></div>'+
+      '<div class="nm">'+esc(m.name)+(m.cls?' <span class="cl">'+esc(m.cls)+'</span>':'')+'</div>'+
+      '<div class="mo'+(m.paid?' on':'')+'">'+(m.paid?money(amt):'未繳')+'</div>'+
+    '</div>';
+  if(OPEN===m.id){
+    h+='<div style="padding:12px;border-bottom:1px solid var(--line);background:var(--panel2)">'+
+      '<div class="g2">'+
+        '<div><label>實收金額</label><input class="eAmt" data-id="'+m.id+'" type="tel" '+
+          'inputmode="numeric" value="'+amt+'"></div>'+
+        '<div><label>方式</label><select class="eWay" data-id="'+m.id+'">'+
+          ['現金','轉帳','其他'].map(function(w){
+            return '<option'+(m.method===w?' selected':'')+'>'+w+'</option>'; }).join('')+
+        '</select></div>'+
+      '</div>'+
+      '<label>備註</label><input class="eNote" data-id="'+m.id+'" value="'+esc(m.note||'')+'" placeholder="例：分兩次繳">'+
+      (m.paidAt?'<div class="meta">收款時間 '+dt(m.paidAt)+'</div>':'')+
+      '<div style="height:12px"></div>'+
+      '<div class="g2">'+
+        '<button class="ePay sm" data-id="'+m.id+'">'+(m.paid?'改成未繳':'標記已繳')+'</button>'+
+        '<button class="eSave sm ghost" data-id="'+m.id+'">儲存</button>'+
+      '</div><div style="height:8px"></div>'+
+      '<button class="eDel sm danger" data-id="'+m.id+'">從名單移除</button>'+
+    '</div>';
+  }
+  return h;
+}
+
+function bindMemEdit(){
+  function v(cls,id){ var e=document.querySelector('.'+cls+'[data-id="'+id+'"]'); return e?e.value:''; }
+  function stop(sel,fn){
+    Array.prototype.forEach.call(document.querySelectorAll(sel),function(b){
+      b.onclick=function(e){ e.stopPropagation(); fn(b); };
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.eAmt,.eWay,.eNote'),function(i){
+    i.onclick=function(e){ e.stopPropagation(); };
+  });
+
+  stop('.ePay',function(b){
+    var id=b.dataset.id, m=MEM.filter(function(x){ return x.id===id; })[0];
+    b.disabled=true;
+    var on=!m.paid;
+    db.collection('members').doc(id).update({
+      paid:on,
+      amount: on ? Number(v('eAmt',id))||CFG.feePerPerson : null,
+      method: on ? v('eWay',id) : '',
+      paidAt: on ? Date.now() : null,
+      note: v('eNote',id)
+    }).then(function(){ toast(on?'已標記收款':'改回未繳'); loadAll(); })
+      .catch(function(e){ b.disabled=false; toast(e.message,true); });
+  });
+
+  stop('.eSave',function(b){
+    var id=b.dataset.id;
+    b.disabled=true;
+    db.collection('members').doc(id).update({
+      amount: Number(v('eAmt',id))||CFG.feePerPerson,
+      method: v('eWay',id), note: v('eNote',id)
+    }).then(function(){ toast('已儲存'); loadAll(); })
+      .catch(function(e){ b.disabled=false; toast(e.message,true); });
+  });
+
+  stop('.eDel',function(b){
+    var id=b.dataset.id;
+    if(!confirm('確定把這個人從名單移除？')) return;
+    b.disabled=true;
+    db.collection('members').doc(id).delete()
+      .then(function(){ OPEN=null; toast('已移除'); loadAll(); })
+      .catch(function(e){ b.disabled=false; toast(e.message,true); });
+  });
+}
+
+/* ============ 帳目 ============ */
+function vBook(){
+  var h='<div class="sec">手動記一筆</div><div class="card">'+
+    '<div class="g2">'+
+      '<div><label>類型</label><select id="tType">'+
+        '<option value="expense">支出</option><option value="income">收入</option></select></div>'+
+      '<div><label>日期</label><input id="tDate" type="date" value="'+today()+'"></div>'+
+    '</div>'+
+    '<label>項目</label><input id="tTitle" placeholder="例：學校社團補助 / 買球杆頭">'+
+    '<label>金額</label><input id="tAmt" type="tel" inputmode="numeric" placeholder="只填數字">'+
+    '<label>備註</label><input id="tNote" placeholder="選填">'+
+    '<label>收據照片（選填）</label>'+
+    '<div class="up" id="tBox">點這裡拍照或選圖<input type="file" id="tFile" accept="image/*"></div>'+
+    '<div style="height:14px"></div><button id="tGo">記帳</button></div>';
+
+  h+='<div class="sec">全部帳目 · '+TXN.length+' 筆</div>';
+  h+= TXN.length ? TXN.map(txnCard).join('') : '<div class="empty">還沒有任何帳目</div>';
+
+  $('body').innerHTML=h;
+
+  var box=$('tBox'), file=$('tFile');
+  PHOTO=null;
+  box.onclick=function(){ file.click(); };
+  file.onchange=function(){
+    var f=file.files[0]; if(!f) return;
+    box.textContent='壓縮中…';
+    compress(f).then(function(d){
+      PHOTO=d; box.innerHTML='✓ 收據已就緒（點可重選）';
+      box.className='up has'; box.appendChild(file);
+    }).catch(function(e){
+      PHOTO=null; box.textContent='點這裡拍照或選圖';
+      box.className='up'; box.appendChild(file); toast(e.message,true);
+    });
+  };
+
+  $('tGo').onclick=function(){
+    var title=$('tTitle').value.trim(), amt=Number($('tAmt').value);
+    if(!title) return toast('填項目名稱',true);
+    if(!amt||isNaN(amt)||amt<=0) return toast('金額要是正數',true);
+    var btn=this; btn.disabled=true; btn.textContent='記帳中…';
+    db.collection('txns').add({
+      type:$('tType').value, title:title, amount:amt, date:$('tDate').value||today(),
+      category:'手動記帳', note:$('tNote').value.trim(), receipt:PHOTO,
+      requestId:null, createdAt:Date.now()
+    }).then(function(){ PHOTO=null; toast('已記帳'); loadAll(); })
+      .catch(function(e){ btn.disabled=false; btn.textContent='記帳'; toast(e.message,true); });
+  };
+
+  Array.prototype.forEach.call(document.querySelectorAll('.tDel'),function(b){
+    b.onclick=function(){
+      var id=b.dataset.id;
+      var t=TXN.filter(function(x){ return x.id===id; })[0];
+      if(t.requestId && !confirm('這筆是請款產生的，刪掉帳目不會改申請狀態。確定？')) return;
+      if(!t.requestId && !confirm('確定刪掉這筆帳？')) return;
+      b.disabled=true;
+      db.collection('txns').doc(id).delete()
+        .then(function(){ toast('已刪除'); loadAll(); })
+        .catch(function(e){ b.disabled=false; toast(e.message,true); });
+    };
+  });
+}
+
+function txnCard(t){
+  var out=t.type==='expense';
+  var h='<div class="card">'+
+    '<div class="row">'+
+      '<div><div class="item">'+esc(t.title)+'</div>'+
+        '<div class="meta">'+esc(t.date||'')+' · '+esc(t.category||'')+
+          (t.note?' · '+esc(t.note):'')+'</div></div>'+
+      '<div class="amt '+(out?'out':'in')+'">'+(out?'−':'+')+money(t.amount).replace('NT$','')+'</div>'+
+    '</div>';
+  if(t.receipt) h+='<img class="thumb" src="'+t.receipt+'" onclick="zoom(this.src)" alt="收據">';
+  h+='<div style="height:10px"></div><button class="tDel sm dim" data-id="'+t.id+'">刪除這筆</button>';
+  return h+'</div>';
+}
+
+/* ============ 設定 ============ */
+function vSet(){
+  var h='<div class="sec">幹部帳號</div>';
+  h+= OFF.length ? '<div class="list">'+OFF.map(function(o){
+        return '<div class="mrow" style="cursor:default">'+
+          '<div class="dot'+(o.active!==false?' on':'')+'"></div>'+
+          '<div class="nm">'+esc(o.name)+' <span class="cl">'+esc(o.role||'')+'</span></div>'+
+          '<div class="mo">PIN '+esc(o.pin)+'</div>'+
+          '<button class="oDel" data-id="'+o.id+'" style="width:auto;padding:5px 10px;font-size:11px;'+
+            'background:transparent;color:var(--bad);border:1px solid #6a2f2c">刪</button>'+
+        '</div>'; }).join('')+'</div>'
+      : '<div class="empty">還沒有幹部帳號<br>建立之後他們才能登入申請</div>';
+
+  h+='<div class="card">'+
+      '<div class="g2">'+
+        '<div><label>姓名</label><input id="oName" placeholder="王小明"></div>'+
+        '<div><label>職位</label><input id="oRole" placeholder="社長"></div>'+
+      '</div>'+
+      '<label>四位數密碼</label><input id="oPin" type="tel" inputmode="numeric" maxlength="4" placeholder="1234">'+
+      '<div style="height:12px"></div><button id="oGo" class="ghost">新增幹部</button></div>';
+
+  h+='<div class="sec">帳務設定</div><div class="card">'+
+    '<div class="g2">'+
+      '<div><label>每人社費</label><input id="cFee" type="tel" inputmode="numeric" value="'+Number(CFG.feePerPerson)+'"></div>'+
+      '<div><label>期初結轉</label><input id="cCarry" type="tel" inputmode="numeric" value="'+Number(CFG.carryOver||0)+'"></div>'+
+    '</div>'+
+    '<label>學期</label><input id="cSem" value="'+esc(CFG.semester||'')+'">'+
+    '<label>管理密碼</label><input id="cPin" value="'+esc(CFG.adminPin)+'">'+
+    '<div style="height:12px"></div><button id="cGo">儲存設定</button></div>';
+
+  h+='<div class="sec">匯出</div><div class="card">'+
+    '<button id="xls" class="ghost">下載 Excel（社費 / 帳目 / 請款）</button>'+
+    '<div class="note">期末交接或跟學校報帳直接用這份。收據照片不會進 Excel，要留存的話在帳目頁點圖放大自己存。</div></div>';
+
+  $('body').innerHTML=h;
+
+  Array.prototype.forEach.call(document.querySelectorAll('.oDel'),function(b){
+    b.onclick=function(){
+      if(!confirm('刪掉這個幹部帳號？他過去的申請紀錄會留著。')) return;
+      b.disabled=true;
+      db.collection('officers').doc(b.dataset.id).delete()
+        .then(function(){ toast('已刪除'); loadAll(); })
+        .catch(function(e){ b.disabled=false; toast(e.message,true); });
+    };
+  });
+
+  $('oGo').onclick=function(){
+    var n=$('oName').value.trim(), r=$('oRole').value.trim(), p=$('oPin').value.trim();
+    if(!n) return toast('填姓名',true);
+    if(!/^\d{4}$/.test(p)) return toast('密碼要四位數字',true);
+    var btn=this; btn.disabled=true;
+    db.collection('officers').add({ name:n, role:r||'幹部', pin:p, active:true, createdAt:Date.now() })
+      .then(function(){ toast('已新增 '+n+'，記得把密碼告訴他'); loadAll(); })
+      .catch(function(e){ btn.disabled=false; toast(e.message,true); });
+  };
+
+  $('cGo').onclick=function(){
+    var fee=Number($('cFee').value), carry=Number($('cCarry').value), pin=$('cPin').value.trim();
+    if(!fee||isNaN(fee)||fee<=0) return toast('社費要是正數',true);
+    if(isNaN(carry)) return toast('結轉要填數字',true);
+    if(pin.length<4) return toast('管理密碼至少 4 碼',true);
+    var btn=this; btn.disabled=true; btn.textContent='儲存中…';
+    db.collection('config').doc('main').update({
+      feePerPerson:fee, carryOver:carry, semester:$('cSem').value.trim(), adminPin:pin
+    }).then(function(){ LS.set('clpb_admin',pin); toast('已儲存'); boot(); })
+      .catch(function(e){ btn.disabled=false; btn.textContent='儲存設定'; toast(e.message,true); });
+  };
+
+  $('xls').onclick=function(){
+    try{
+      var wb=XLSX.utils.book_new();
+      var c=calc();
+
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+        ['項目','金額'],
+        ['期初結轉',c.carry],['社費收入',c.fee],['其他收入',c.inc],
+        ['支出合計',-c.exp],['結餘',c.bal],[],
+        ['已繳人數',c.paidN],['未繳人數',c.unpaidN],['每人社費',Number(CFG.feePerPerson)]
+      ]), '總表');
+
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(MEM.map(function(m){
+        return { 班級:m.cls||'', 姓名:m.name, 狀態:m.paid?'已繳':'未繳',
+          金額:m.paid?Number(m.amount!=null?m.amount:CFG.feePerPerson):'',
+          方式:m.method||'', 收款時間:m.paidAt?dt(m.paidAt):'', 備註:m.note||'' };
+      })), '社費');
+
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(TXN.map(function(t){
+        return { 日期:t.date||'', 類型:t.type==='income'?'收入':'支出', 項目:t.title,
+          金額:Number(t.amount), 分類:t.category||'', 備註:t.note||'', 有收據:t.receipt?'有':'無' };
+      })), '收支明細');
+
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(REQ.map(function(r){
+        return { 送出時間:dt(r.createdAt), 申請人:r.officerName, 職位:r.role||'',
+          類型:r.kind==='advance'?'預支':'核銷', 項目:r.item,
+          申請金額:Number(r.amount), 核准金額:r.approvedAmount!=null?Number(r.approvedAmount):'',
+          實際金額:r.actualAmount!=null?Number(r.actualAmount):'',
+          狀態:(ST[r.status]||{}).t||r.status, 用途:r.reason||'', 總務備註:r.adminNote||'' };
+      })), '請款紀錄');
+
+      XLSX.writeFile(wb, CFG.clubName+'_社費帳_'+today()+'.xlsx');
+      toast('已下載');
+    }catch(e){ toast('匯出失敗：'+e.message,true); }
+  };
+}
+
+/* ============ 複製 ============ */
+function copy(txt){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ toast('已複製'); },function(){ fallback(txt); });
+  } else fallback(txt);
+  function fallback(t){
+    var ta=document.createElement('textarea');
+    ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('已複製'); }
+    catch(e){ toast('複製失敗，手動選取吧',true); }
+    document.body.removeChild(ta);
+  }
+}
+
+})();
+</script>
+</body>
+</html>
