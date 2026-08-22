@@ -72,6 +72,18 @@ button.ghost{background:transparent;color:var(--gold);border:1px solid var(--gol
 button.dim{background:transparent;color:var(--dim);border:1px solid var(--line);box-shadow:none}
 button.sm{padding:12px;font-size:15px;min-height:46px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* Grid 子元素預設 min-width:auto 會被內容撐爆，必須歸零 */
+.g2>*,.g3>*{min-width:0}
+input[type=date]{font-size:15px;padding:14px 10px}
+.row>div:first-child{flex:1;min-width:0}
+.item{word-break:break-word}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+
+/* 8 號球 */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero{display:flex;justify-content:center;padding:6px 0 18px}
+.hero svg{width:132px;height:132px;animation:float 4.5s ease-in-out infinite;
+  filter:drop-shadow(0 12px 22px rgba(0,0,0,.6))}
 
 .pick{display:grid;gap:12px;margin-bottom:18px}
 .pick button{text-align:left;padding:20px;line-height:1.45;font-size:18px}
@@ -134,6 +146,10 @@ button.sm{padding:12px;font-size:15px;min-height:46px}
 .up.has{border-style:solid;border-color:#2f7355;color:var(--ok);
   background:rgba(76,232,160,.07);animation:pop .3s cubic-bezier(.3,1.4,.5,1) both}
 .up input{display:none}
+.up2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.up2>.up{margin:0;padding:20px 10px;font-size:14px}
+.uphint{font-size:13px;color:var(--dim);margin-top:8px;line-height:1.6;text-align:center}
+
 
 .diff{text-align:center;padding:14px;border-radius:10px;margin-top:12px;font-size:16px;
   animation:pop .26s ease both}
@@ -241,28 +257,70 @@ function hashPw(s){
   return Promise.resolve('fb'+(h>>>0).toString(16));
 }
 
+function loadHeic(){
+  if(window.heic2any) return Promise.resolve(true);
+  if(loadHeic._p) return loadHeic._p;
+  loadHeic._p=new Promise(function(res){
+    var done=false;
+    var t=setTimeout(function(){ if(!done){ done=true; res(false); } },15000);
+    var sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+    sc.onload=function(){ if(!done){ done=true; clearTimeout(t); res(!!window.heic2any); } };
+    sc.onerror=function(){ if(!done){ done=true; clearTimeout(t); res(false); } };
+    document.head.appendChild(sc);
+  });
+  return loadHeic._p;
+}
+
+var HEIC_TIP='HEIC 格式轉檔失敗。到「相機 → 進階拍攝選項」把「高效率格式」關掉重拍，'+
+  '或先把照片傳給自己的 LINE 再存下來，格式就會變成一般的 JPG';
+
+/* 先處理格式（HEIC 轉 JPEG），再縮圖壓縮 */
 function compress(file){
+  if(!file) return Promise.reject(new Error('沒有選到檔案'));
+  var nm=(file.name||'').toLowerCase();
+  var heic=/\.(heic|heif)$/.test(nm) || /hei[cf]/.test(file.type||'');
+  if(!/^image\//.test(file.type) && !heic)
+    return Promise.reject(new Error('請選圖片檔'));
+
+  if(!heic) return shrink(file,false);
+
+  return loadHeic().then(function(ok){
+    if(!ok) throw new Error(HEIC_TIP);
+    return window.heic2any({ blob:file, toType:'image/jpeg', quality:0.85 });
+  }).then(function(out){
+    return shrink(Array.isArray(out)?out[0]:out, true);
+  }).catch(function(e){
+    throw new Error(e && e.message === HEIC_TIP ? HEIC_TIP : HEIC_TIP);
+  });
+}
+
+function shrink(blob,wasHeic){
   return new Promise(function(res,rej){
-    if(!file) return rej(new Error('沒有選到檔案'));
-    if(!/^image\//.test(file.type)) return rej(new Error('請選圖片檔'));
     var fr=new FileReader();
-    fr.onerror=function(){ rej(new Error('檔案讀不到')); };
+    fr.onerror=function(){ rej(new Error('檔案讀不到，換一張試試')); };
     fr.onload=function(){
       var img=new Image();
-      img.onerror=function(){ rej(new Error('圖片解析失敗')); };
+      img.onerror=function(){
+        rej(new Error(wasHeic ? HEIC_TIP
+          : '這張圖解不開，可能是特殊格式。用手機截圖一張再上傳就會過'));
+      };
       img.onload=function(){
         var w=img.width,h=img.height,MAX=1000;
+        if(!w||!h) return rej(new Error('圖片尺寸讀不到，換一張試試'));
         if(w>MAX){ h=Math.round(h*MAX/w); w=MAX; }
         var c=document.createElement('canvas'); c.width=w; c.height=h;
         var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(img,0,0,w,h);
-        var q=0.62,out=c.toDataURL('image/jpeg',q);
+        var q=0.62,out;
+        try{ out=c.toDataURL('image/jpeg',q); }
+        catch(e){ return rej(new Error('照片太大，手機處理不動。用截圖或調低相機解析度')); }
         while(out.length>400000&&q>0.2){ q-=0.08; out=c.toDataURL('image/jpeg',q); }
-        if(out.length>700000) return rej(new Error('照片太大，靠近一點重拍'));
+        if(out.length>700000) return rej(new Error('照片太大，請靠近一點重拍'));
         res(out);
       };
       img.src=fr.result;
     };
-    fr.readAsDataURL(file);
+    fr.readAsDataURL(blob);
   });
 }
 
@@ -489,7 +547,13 @@ function myCard(r){
       '<input type="tel" inputmode="numeric" class="fAct" data-id="'+r.id+'" placeholder="收據上的總金額">'+
       '<div class="dOut" data-id="'+r.id+'"></div>'+
       '<label>收據照片</label>'+
-      '<div class="up fUp" data-id="'+r.id+'">📷 點這裡拍照或選圖<input type="file" accept="image/*"></div>'+
+      '<div class="up2">'+
+        '<div class="up fUp" data-id="'+r.id+'">📷 拍照'+
+          '<input type="file" accept="image/*" capture="environment"></div>'+
+        '<div class="up fUp" data-id="'+r.id+'">🖼 從相簿選'+
+          '<input type="file" accept="image/*"></div>'+
+      '</div>'+
+      '<div class="uphint" data-id="'+r.id+'">還沒選收據</div>'+
       '<div style="height:14px"></div>'+
       '<button class="fSend" data-id="'+r.id+'">送出核銷</button>';
   }
@@ -502,15 +566,18 @@ function bindMy(){
   var store={};
   Array.prototype.forEach.call(document.querySelectorAll('.fUp'),function(box){
     var id=box.dataset.id, inp=box.querySelector('input');
+    var hint=document.querySelector('.uphint[data-id="'+id+'"]');
     box.onclick=function(){ inp.click(); };
     inp.onchange=function(){
       var f=inp.files[0]; if(!f) return;
-      box.textContent='壓縮中…';
+      if(hint){ hint.textContent='處理中…（HEIC 需要幾秒）'; hint.style.color='var(--gold)'; }
       compress(f).then(function(d){
         store[id]=store[id]||{}; store[id].photo=d;
-        box.innerHTML='✓ 收據已就緒（點可重選）'; box.className='up fUp has'; box.appendChild(inp);
+        if(hint){ hint.textContent='✓ 收據已就緒'; hint.style.color='var(--ok)'; }
       }).catch(function(e){
-        box.textContent='📷 點這裡拍照或選圖'; box.appendChild(inp); toast(e.message,true);
+        store[id]=store[id]||{}; store[id].photo=null;
+        if(hint){ hint.textContent='還沒選收據'; hint.style.color=''; }
+        inp.value=''; toast(e.message,true);
       });
     };
   });
@@ -557,7 +624,12 @@ function vForm(kind){
 
   if(isAdv) h+='<div class="note">領到錢買完之後，回「我的申請」補收據跟實際金額，多退少補。</div>';
   else h+='<label>收據照片（必附）</label>'+
-    '<div class="up" id="fBox">📷 點這裡拍照或選圖<input type="file" id="fFile" accept="image/*"></div>';
+    '<div class="up2">'+
+      '<div class="up" id="fBoxA">📷 拍照'+
+        '<input type="file" id="fFileA" accept="image/*" capture="environment"></div>'+
+      '<div class="up" id="fBoxB">🖼 從相簿選'+
+        '<input type="file" id="fFileB" accept="image/*"></div>'+
+    '</div><div class="uphint" id="fHint">還沒選收據</div>';
 
   h+='<div style="height:18px"></div><button id="fGo">送出申請</button>'+
      '<div style="height:10px"></div><button id="fBack" class="dim">取消</button></div>';
@@ -567,18 +639,21 @@ function vForm(kind){
   $('fBack').onclick=function(){ VIEW='list'; PHOTO=null; render(); };
 
   if(!isAdv){
-    var box=$('fBox'), file=$('fFile');
-    box.onclick=function(){ file.click(); };
-    file.onchange=function(){
-      var f=file.files[0]; if(!f) return;
-      box.textContent='壓縮中…';
-      compress(f).then(function(d){
-        PHOTO=d; box.innerHTML='✓ 收據已就緒（點可重選）'; box.className='up has'; box.appendChild(file);
-      }).catch(function(e){
-        PHOTO=null; box.textContent='📷 點這裡拍照或選圖'; box.className='up'; box.appendChild(file);
-        toast(e.message,true);
-      });
-    };
+    [['fBoxA','fFileA'],['fBoxB','fFileB']].forEach(function(pair){
+      var box=$(pair[0]), file=$(pair[1]), hint=$('fHint');
+      box.onclick=function(){ file.click(); };
+      file.onchange=function(){
+        var f=file.files[0]; if(!f) return;
+        hint.textContent='處理中…（HEIC 需要幾秒）'; hint.style.color='var(--gold)';
+        compress(f).then(function(d){
+          PHOTO=d; hint.textContent='✓ 收據已就緒'; hint.style.color='var(--ok)';
+          box.className='up has';
+        }).catch(function(e){
+          PHOTO=null; hint.textContent='還沒選收據'; hint.style.color='';
+          box.className='up'; file.value=''; toast(e.message,true);
+        });
+      };
+    });
   }
 
   $('fGo').onclick=function(){
