@@ -118,6 +118,10 @@ button.xs{width:auto;padding:8px 14px;font-size:13px;min-height:auto;flex:0 0 au
 .up.has{border-style:solid;border-color:#2f7355;color:var(--ok);background:rgba(76,232,160,.07);
   animation:pop .3s cubic-bezier(.3,1.4,.5,1) both}
 .up input{display:none}
+.up2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.up2>.up{margin:0;padding:20px 10px;font-size:14px}
+.uphint{font-size:13px;color:var(--dim);margin-top:8px;line-height:1.6;text-align:center}
+
 
 .diff{text-align:center;padding:14px;border-radius:10px;margin-top:12px;font-size:16px;animation:pop .26s ease both}
 .diff.back{background:rgba(76,232,160,.12);color:var(--ok);border:1px solid #2f7355}
@@ -219,28 +223,70 @@ function countUp(el,to){
   requestAnimationFrame(step);
 }
 
+function loadHeic(){
+  if(window.heic2any) return Promise.resolve(true);
+  if(loadHeic._p) return loadHeic._p;
+  loadHeic._p=new Promise(function(res){
+    var done=false;
+    var t=setTimeout(function(){ if(!done){ done=true; res(false); } },15000);
+    var sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+    sc.onload=function(){ if(!done){ done=true; clearTimeout(t); res(!!window.heic2any); } };
+    sc.onerror=function(){ if(!done){ done=true; clearTimeout(t); res(false); } };
+    document.head.appendChild(sc);
+  });
+  return loadHeic._p;
+}
+
+var HEIC_TIP='HEIC 格式轉檔失敗。到「相機 → 進階拍攝選項」把「高效率格式」關掉重拍，'+
+  '或先把照片傳給自己的 LINE 再存下來，格式就會變成一般的 JPG';
+
+/* 先處理格式（HEIC 轉 JPEG），再縮圖壓縮 */
 function compress(file){
+  if(!file) return Promise.reject(new Error('沒有選到檔案'));
+  var nm=(file.name||'').toLowerCase();
+  var heic=/\.(heic|heif)$/.test(nm) || /hei[cf]/.test(file.type||'');
+  if(!/^image\//.test(file.type) && !heic)
+    return Promise.reject(new Error('請選圖片檔'));
+
+  if(!heic) return shrink(file,false);
+
+  return loadHeic().then(function(ok){
+    if(!ok) throw new Error(HEIC_TIP);
+    return window.heic2any({ blob:file, toType:'image/jpeg', quality:0.85 });
+  }).then(function(out){
+    return shrink(Array.isArray(out)?out[0]:out, true);
+  }).catch(function(e){
+    throw new Error(e && e.message === HEIC_TIP ? HEIC_TIP : HEIC_TIP);
+  });
+}
+
+function shrink(blob,wasHeic){
   return new Promise(function(res,rej){
-    if(!file) return rej(new Error('沒有選到檔案'));
-    if(!/^image\//.test(file.type)) return rej(new Error('請選圖片檔'));
     var fr=new FileReader();
-    fr.onerror=function(){ rej(new Error('檔案讀不到')); };
+    fr.onerror=function(){ rej(new Error('檔案讀不到，換一張試試')); };
     fr.onload=function(){
       var img=new Image();
-      img.onerror=function(){ rej(new Error('圖片解析失敗')); };
+      img.onerror=function(){
+        rej(new Error(wasHeic ? HEIC_TIP
+          : '這張圖解不開，可能是特殊格式。用手機截圖一張再上傳就會過'));
+      };
       img.onload=function(){
         var w=img.width,h=img.height,MAX=1000;
+        if(!w||!h) return rej(new Error('圖片尺寸讀不到，換一張試試'));
         if(w>MAX){ h=Math.round(h*MAX/w); w=MAX; }
         var c=document.createElement('canvas'); c.width=w; c.height=h;
         var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(img,0,0,w,h);
-        var q=0.62,out=c.toDataURL('image/jpeg',q);
+        var q=0.62,out;
+        try{ out=c.toDataURL('image/jpeg',q); }
+        catch(e){ return rej(new Error('照片太大，手機處理不動。用截圖或調低相機解析度')); }
         while(out.length>400000&&q>0.2){ q-=0.08; out=c.toDataURL('image/jpeg',q); }
-        if(out.length>700000) return rej(new Error('照片太大，靠近一點重拍'));
+        if(out.length>700000) return rej(new Error('照片太大，請靠近一點重拍'));
         res(out);
       };
       img.src=fr.result;
     };
-    fr.readAsDataURL(file);
+    fr.readAsDataURL(blob);
   });
 }
 
@@ -622,7 +668,12 @@ function vBook(){
     '<label>金額</label><input id="tAmt" type="tel" inputmode="numeric" placeholder="只填數字">'+
     '<label>備註</label><input id="tNote" placeholder="選填">'+
     '<label>收據 / 憑證照片（選填）</label>'+
-    '<div class="up" id="tBox">📷 點這裡拍照或選圖<input type="file" id="tFile" accept="image/*"></div>'+
+    '<div class="up2">'+
+      '<div class="up" id="tBoxA">📷 拍照'+
+        '<input type="file" id="tFileA" accept="image/*" capture="environment"></div>'+
+      '<div class="up" id="tBoxB">🖼 從相簿選'+
+        '<input type="file" id="tFileB" accept="image/*"></div>'+
+    '</div><div class="uphint" id="tHint">選填</div>'+
     '<div style="height:16px"></div><button id="tGo">記帳</button>'+
     '<div class="note">只有這裡能記收入。幹部端看得到每一筆，但改不了。</div></div>'+
     '<div class="sec">全部帳目 · '+TXN.length+' 筆</div>';
@@ -630,19 +681,22 @@ function vBook(){
 
   $('body').innerHTML=h; anim();
 
-  var box=$('tBox'), file=$('tFile'); PHOTO=null;
+  PHOTO=null;
   $('tType').onchange=function(){ $('srcWrap').style.display=this.value==='income'?'':'none'; };
-  box.onclick=function(){ file.click(); };
-  file.onchange=function(){
-    var f=file.files[0]; if(!f) return;
-    box.textContent='壓縮中…';
-    compress(f).then(function(d){
-      PHOTO=d; box.innerHTML='✓ 已就緒（點可重選）'; box.className='up has'; box.appendChild(file);
-    }).catch(function(e){
-      PHOTO=null; box.textContent='📷 點這裡拍照或選圖'; box.className='up'; box.appendChild(file);
-      toast(e.message,true);
-    });
-  };
+  [['tBoxA','tFileA'],['tBoxB','tFileB']].forEach(function(pair){
+    var box=$(pair[0]), file=$(pair[1]), hint=$('tHint');
+    box.onclick=function(){ file.click(); };
+    file.onchange=function(){
+      var f=file.files[0]; if(!f) return;
+      hint.textContent='處理中…（HEIC 需要幾秒）'; hint.style.color='var(--gold)';
+      compress(f).then(function(d){
+        PHOTO=d; hint.textContent='✓ 已就緒'; hint.style.color='var(--ok)'; box.className='up has';
+      }).catch(function(e){
+        PHOTO=null; hint.textContent='選填'; hint.style.color=''; box.className='up';
+        file.value=''; toast(e.message,true);
+      });
+    };
+  });
 
   $('tGo').onclick=function(){
     var type=$('tType').value, title=$('tTitle').value.trim(), amt=Number($('tAmt').value);
@@ -694,7 +748,12 @@ function txnEdit(t){
     '<label>憑證照片</label>'+
     (pic?'<img class="thumb" src="'+pic+'" onclick="zoom(this.src)" alt="收據">':'')+
     '<div style="height:10px"></div>'+
-    '<div class="up" id="xBox">📷 '+(pic?'換一張':'加一張')+'<input type="file" id="xFile" accept="image/*"></div>'+
+    '<div class="up2">'+
+      '<div class="up" id="xBoxA">📷 拍照'+
+        '<input type="file" id="xFileA" accept="image/*" capture="environment"></div>'+
+      '<div class="up" id="xBoxB">🖼 從相簿選'+
+        '<input type="file" id="xFileB" accept="image/*"></div>'+
+    '</div><div class="uphint" id="xHint">'+(pic?'目前有一張，選新的會覆蓋':'選填')+'</div>'+
     (pic?'<div style="height:10px"></div><button id="xRm" class="sm danger">移除照片</button>':'')+
     '<div style="height:16px"></div>'+
     '<div class="g2"><button class="xSave sm" data-id="'+t.id+'">儲存</button>'+
@@ -713,19 +772,22 @@ function bindTxn(){
     b.onclick=function(){ EDIT=null; EPHOTO=undefined; render(); };
   });
 
-  var box=$('xBox'), file=$('xFile');
-  if(box && file){
+  [['xBoxA','xFileA'],['xBoxB','xFileB']].forEach(function(pair){
+    var box=$(pair[0]), file=$(pair[1]), hint=$('xHint');
+    if(!box||!file) return;
     box.onclick=function(){ file.click(); };
     file.onchange=function(){
       var f=file.files[0]; if(!f) return;
-      box.textContent='壓縮中…';
+      hint.textContent='處理中…（HEIC 需要幾秒）'; hint.style.color='var(--gold)';
       compress(f).then(function(d){
-        EPHOTO=d; box.innerHTML='✓ 新照片已就緒（儲存後生效）'; box.className='up has'; box.appendChild(file);
+        EPHOTO=d; hint.textContent='✓ 新照片已就緒（儲存後生效）';
+        hint.style.color='var(--ok)'; box.className='up has';
       }).catch(function(e){
-        box.textContent='📷 換一張'; box.appendChild(file); toast(e.message,true);
+        hint.textContent='選填'; hint.style.color=''; box.className='up';
+        file.value=''; toast(e.message,true);
       });
     };
-  }
+  });
   var rm=$('xRm');
   if(rm) rm.onclick=function(){ EPHOTO=null; toast('儲存後照片就會移除'); render(); };
 
